@@ -569,6 +569,9 @@ body{background:#dfe7f5}
 .t2-prof{display:flex;align-items:center;gap:14px}
 .t2-prof .big{flex:none;width:64px;height:64px;border-radius:21px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.32);display:flex;align-items:center;justify-content:center;font-size:27px;font-weight:800}
 .t2-prof b{display:block;font-size:19px;line-height:1.2}
+.t2-prof .big{position:relative;padding:0;overflow:hidden;color:inherit;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.t2-prof .big img,.t2-av img{width:100%;height:100%;object-fit:cover;display:block}
+.t2-av{overflow:hidden}
 .t2-prof small{color:#cfe0ff;font-size:12.5px}
 .t2-info{display:flex;align-items:flex-start;gap:12px;padding:11px 0;border-bottom:1px solid #edf1f8}
 .t2-info:last-child{border-bottom:0}
@@ -1038,6 +1041,27 @@ function t2Hour() {
   catch (e) { return srvDate().getHours(); }
 }
 function t2Greet() { var h = t2Hour(); return h < 11 ? 'Selamat pagi' : (h < 15 ? 'Selamat siang' : (h < 18 ? 'Selamat sore' : 'Selamat malam')); }
+/* foto profil: disimpan di perangkat ini (localStorage), dipotong persegi (isi penuh kotak) dan dikecilkan 256px */
+function fpKey() { return 'eo_fp_' + ((S.user && (S.user.no_id || S.user.nama)) || ''); }
+function fpGet() { try { return localStorage.getItem(fpKey()) || ''; } catch (e) { return ''; } }
+function fpSet(v) { try { localStorage.setItem(fpKey(), v); return true; } catch (e) { return false; } }
+function fpAvatar(nama) { var f = fpGet(); return f ? '<img alt="" src="' + f + '">' : t2Ini(nama); }
+function fpResize(file, cb) {
+  var fr = new FileReader();
+  fr.onerror = function () { cb(null); };
+  fr.onload = function () {
+    var im = new Image();
+    im.onerror = function () { cb(null); };
+    im.onload = function () {
+      var n = 256, c = document.createElement('canvas'); c.width = n; c.height = n;
+      var sz = Math.min(im.width, im.height), sx = (im.width - sz) / 2, sy = (im.height - sz) / 2;
+      var x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, n, n); x.drawImage(im, sx, sy, sz, sz, 0, 0, n, n);
+      cb(c.toDataURL('image/jpeg', 0.85));
+    };
+    im.src = fr.result;
+  };
+  fr.readAsDataURL(file);
+}
 function t2Ini(n) { return esc(String(n || '?').trim().charAt(0).toUpperCase() || '?'); }
 function t2Min(s) { var a = String(s || '').split(':'); return a.length > 1 && !isNaN(+a[0]) ? (+a[0]) * 60 + (+a[1]) : null; }
 function t2State() {
@@ -1115,7 +1139,7 @@ function tHome() {
     if (a != null && nw != null && z > a) pct = Math.max(4, Math.min(100, Math.round((nw - a) / (z - a) * 100)));
   } else if (p && p.jam_masuk) pct = 40;
 
-  var h = t2Head('<div class="t2-top"><span class="t2-av">' + t2Ini(S.user.nama) + '</span><div class="t2-who"><small>' + esc(t2Greet()) + '</small><b>' + esc(S.user.nama) + '</b></div><span class="t2-logo">' + LOGO + '</span></div>');
+  var h = t2Head('<div class="t2-top"><span class="t2-av">' + fpAvatar(S.user.nama) + '</span><div class="t2-who"><small>' + esc(t2Greet()) + '</small><b>' + esc(S.user.nama) + '</b></div><span class="t2-logo">' + LOGO + '</span></div>');
   h += '<div class="t2-body t2-pull">';
   h += '<div class="t2-card t2-clock"><div class="t2-cdate">' + nv('cal') + esc(dateLong()) + '</div><div class="t2-clk" id="clock">' + esc(clockStr()) + '</div>' +
     '<div style="margin-top:8px">' + (p ? t2Chip(p.status) : '<span class="t2-chip">Belum presensi</span>') + '</div>' +
@@ -1518,7 +1542,7 @@ function tRiwayat() {
 function tAkun() {
   var u = S.user;
   var rows = [['id', 'No. ID', u.no_id], ['user', 'Nama', u.nama], ['kit', 'Bidang', u.bidang], ['lap', 'Kategori', u.kategori], ['pin', 'Kecamatan', u.kecamatan], ['pin', 'Kelurahan/Desa', u.kelurahan_desa], ['phone', 'No. HP', u.no_hp]];
-  $('#view').innerHTML = t2Head('<div class="t2-prof"><span class="big">' + t2Ini(u.nama) + '</span><div class="t2-who"><b>' + esc(u.nama) + '</b><small>' + esc(u.no_id || '') + (u.bidang ? ' · ' + esc(u.bidang) : '') + '</small></div></div>') +
+  $('#view').innerHTML = t2Head('<div class="t2-prof"><button type="button" class="big" id="fpb" aria-label="Ganti foto profil">' + fpAvatar(u.nama) + '</button><input type="file" id="fpf" accept="image/*" hidden><div class="t2-who"><b>' + esc(u.nama) + '</b><small>' + esc(u.no_id || '') + (u.bidang ? ' · ' + esc(u.bidang) : '') + '</small></div></div>') +
     '<div class="t2-body t2-pull">' +
     '<div class="t2-card"><div class="t2-sec"><span class="t2-ic">' + nv('user') + '</span><h3>Data diri</h3></div>' +
     rows.map(function (r) { return '<div class="t2-info"><span class="t2-ic">' + nv(r[0]) + '</span><div><small>' + r[1] + '</small><b>' + esc(r[2] || '-') + '</b></div></div>'; }).join('') +
@@ -1541,6 +1565,17 @@ function tAkun() {
     var v = formVals($('#gp'));
     if (v.b !== v.c) { toast('Konfirmasi PIN tidak sama.', 'err'); return; }
     busy(function () { return api('apiGantiPin', v.a, v.b); }).then(function () { toast('PIN diganti.', 'ok'); $('#gp').reset(); }).catch(onErr);
+  };
+  $('#fpb').onclick = function () { $('#fpf').click(); };
+  $('#fpf').onchange = function () {
+    var f = this.files && this.files[0]; this.value = '';
+    if (!f) return;
+    if (!/^image\//.test(f.type)) { toast('Pilih berkas gambar.', 'err'); return; }
+    fpResize(f, function (d) {
+      if (!d) { toast('Foto tidak dapat dibaca.', 'err'); return; }
+      if (!fpSet(d)) { toast('Penyimpanan perangkat penuh/dibatasi.', 'err'); return; }
+      toast('Foto profil diganti.', 'ok'); tAkun();
+    });
   };
   $('#lo').onclick = function () { logout(); };
 }
