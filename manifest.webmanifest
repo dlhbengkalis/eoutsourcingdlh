@@ -2,7 +2,7 @@
   "name": "e-Outsourcing DLH Kabupaten Bengkalis",
   "short_name": "e-Outsourcing",
   "description": "Presensi dan laporan harian tenaga outsourcing Dinas Lingkungan Hidup Kabupaten Bengkalis.",
-  "id": "/eoutsourcingdlh/",
+  "id": "/",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
