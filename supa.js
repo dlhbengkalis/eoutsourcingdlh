@@ -2,12 +2,16 @@
  * Menggantikan call() lama (Apps Script) dengan antarmuka yang sama: call(fn, ...args) -> Promise(data)
  * Galat: Error dengan .code ('AUTH','MUSTCHANGE','FORBIDDEN','USER') atau .net=true bila koneksi gagal. */
 (function () {
-  var C = window.EO_CONFIG, KEY = 'eo_sb';
+  var C = window.EO_CONFIG, KEY = 'eo2_sess';
   var base = C.SUPABASE_URL.replace(/\/+$/, '');
   var sess = null, refreshing = null;
 
-  function load() { if (sess) return sess; try { sess = JSON.parse(sessionStorage.getItem(KEY) || 'null'); } catch (e) { sess = null; } return sess; }
-  function save(s) { sess = s; try { if (s) sessionStorage.setItem(KEY, JSON.stringify(s)); else sessionStorage.removeItem(KEY); } catch (e) { /* abaikan */ } }
+  // sesi disimpan di localStorage agar tetap login setelah aplikasi/tab ditutup; hilang hanya saat Keluar atau sesi dicabut server
+  function read() { try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { return null; } }
+  function load() { if (sess) return sess; sess = read(); return sess; }
+  function save(s) { sess = s; try { if (s) localStorage.setItem(KEY, JSON.stringify(s)); else localStorage.removeItem(KEY); } catch (e) { /* abaikan */ } }
+  // sinkron antar-tab: bila tab lain memperbarui/menghapus sesi, ikuti
+  window.addEventListener('storage', function (e) { if (e.key === KEY) sess = read(); });
   function mkErr(msg, code, net) { var e = new Error(msg); if (code) e.code = code; if (net) e.net = true; return e; }
   function hdr(tok, extra) { var h = { apikey: C.SUPABASE_ANON_KEY }; if (tok) h.Authorization = 'Bearer ' + tok; for (var k in extra) h[k] = extra[k]; return h; }
 
@@ -25,10 +29,17 @@
     if (refreshing) return refreshing;
     var s = load();
     if (!s || !s.refresh_token) return Promise.reject(mkErr('Sesi berakhir. Silakan login kembali.', 'AUTH'));
+    var latest = read();
+    if (latest && latest.exp - 60 > Date.now() / 1000) { sess = latest; return Promise.resolve(sess); } // tab lain sudah memperbarui
+    if (latest) { sess = latest; s = latest; }
     refreshing = fx(base + '/auth/v1/token?grant_type=refresh_token', {
       method: 'POST', headers: hdr(null, { 'Content-Type': 'application/json' }), body: JSON.stringify({ refresh_token: s.refresh_token })
     }).then(function (r) {
-      if (r.status >= 400 && r.status < 500 && r.status !== 429) { save(null); throw mkErr('Sesi berakhir. Silakan login kembali.', 'AUTH'); }
+      if (r.status >= 400 && r.status < 500 && r.status !== 429) {
+        var again = read();
+        if (again && again.refresh_token !== s.refresh_token) { sess = again; return again; } // tab lain berhasil memutar token lebih dulu
+        save(null); throw mkErr('Sesi berakhir. Silakan login kembali.', 'AUTH');
+      }
       if (!r.ok) throw mkErr('Koneksi ke server gagal.', '', true);
       return r.json().then(function (j) { setSession(j); return sess; });
     }).then(function (v) { refreshing = null; return v; }, function (e) { refreshing = null; throw e; });

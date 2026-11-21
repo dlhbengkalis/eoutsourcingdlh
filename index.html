@@ -653,7 +653,7 @@ function tglId(s) {
   return (+p[2]) + ' ' + BLN[+p[1] - 1].substr(0, 3) + ' ' + p[0];
 }
 function blnId(ym) { var p = ym.split('-'); return BLN[+p[1] - 1] + ' ' + p[0]; }
-function store(k, v) { try { if (v === undefined) return sessionStorage.getItem(k); if (v === null) sessionStorage.removeItem(k); else sessionStorage.setItem(k, v); } catch (e) { return null; } }
+function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { return null; } }
 function listOpt(str) { return String(str || '').split(';').map(function (x) { return x.trim(); }).filter(String); }
 function optsHtml(list, sel, empty) {
   var h = empty !== undefined ? '<option value="">' + esc(empty) + '</option>' : '';
@@ -977,7 +977,7 @@ function renderLogin(msg) {
   $('#lf').onsubmit = function (e) {
     e.preventDefault();
     busy(function () { return call('apiLogin', role, $('#lid').value, $('#lpw').value); }, 'Masuk…')
-      .then(function (r) { S.token = r.token; store('eo_token', r.token); return boot(r.boot); })
+      .then(function (r) { S.token = r.token; store('eo2_token', r.token); return boot(r.boot); })
       .catch(onErr);
   };
 }
@@ -989,7 +989,7 @@ function logout(silent, msg) {
   if (t && !silent) call('apiLogout', t);
   if (Q.timer) { clearInterval(Q.timer); Q.timer = null; }
   S.token = null; S.user = null; S.tenaga = null; FC = {}; RWC = {}; RC = {};
-  store('eo_token', null);
+  store('eo2_token', null);
   renderLogin(msg);
 }
 
@@ -2340,7 +2340,7 @@ fitW(); addEventListener('resize', fitW); addEventListener('orientationchange', 
 
 // Simpan aplikasi di perangkat (hanya di GitHub Pages): pembukaan berikutnya instan, versi baru dimuat di latar belakang
 try { if ('serviceWorker' in navigator && /\.github\.io$/.test(location.hostname)) navigator.serviceWorker.register('sw.js').catch(function () {}); } catch (e) { /* abaikan */ }
-var saved = store('eo_token');
+var saved = store('eo2_token');
 if (saved && window.EO_HAS_SESSION()) { S.token = saved; boot(); } else renderLogin();
 
 })();
