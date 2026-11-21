@@ -1062,6 +1062,8 @@ function fpResize(file, cb) {
   };
   fr.readAsDataURL(file);
 }
+/* jenis pekerjaan sudah tidak diisi; data lama tetap dibaca, nilai kosong / '-' disembunyikan */
+function jn(v) { v = String(v == null ? '' : v).trim(); return v === '-' ? '' : v; }
 function t2Ini(n) { return esc(String(n || '?').trim().charAt(0).toUpperCase() || '?'); }
 function t2Min(s) { var a = String(s || '').split(':'); return a.length > 1 && !isNaN(+a[0]) ? (+a[0]) * 60 + (+a[1]) : null; }
 function t2State() {
@@ -1273,7 +1275,7 @@ function lapRow(l, mode) {
 function lapDetail(l) {
   var fotos = String(l.foto || '').split(',').filter(String);
   var m = openModal('Detail laporan',
-    '<p style="margin:0 0 4px"><b>' + esc(l.jenis_pekerjaan) + '</b></p>' +
+    (jn(l.jenis_pekerjaan) ? '<p style="margin:0 0 4px"><b>' + esc(l.jenis_pekerjaan) + '</b></p>' : '') +
     '<small class="muted">' + esc(t2D(l.tanggal)) + ' · ' + esc(String(l.waktu || '').substr(0, 5)) + '</small>' +
     '<p style="margin:10px 0;white-space:pre-wrap">' + esc(l.uraian) + '</p>' +
     (l.volume ? '<small class="muted">Volume: ' + esc(l.volume) + ' ' + esc(l.satuan) + '</small>' : '') +
@@ -1300,7 +1302,7 @@ function laporanForm(ex) {
   var pos = null;
   var gps = watchGps(function (g) { pos = g; }, function () {});
   var m = openModal(ex ? 'Ubah Laporan' : 'Laporan Pekerjaan',
-    '<form id="lf2"><label>Jenis pekerjaan</label><select name="jenis" required>' + optsHtml(listOpt(S.cfg.jenis_pekerjaan), ex && ex.jenis_pekerjaan, '— pilih —') + '</select>' +
+    '<form id="lf2">' +
     '<label>Uraian singkat pekerjaan</label><textarea name="uraian" required minlength="10" maxlength="1500" placeholder="Contoh: Menyapu dan mengangkut sampah di Jl. Pattimura sepanjang 1,2 km, volume ± 3 m³.">' + esc(ex ? ex.uraian : '') + '</textarea>' +
     '<div class="grid"><div><label>Volume pekerjaan' + (S.cfg.laporan_wajib_volume === 'YA' ? '' : ' (opsional)') + '</label><input name="volume" inputmode="decimal" placeholder="mis. 3,5" value="' + esc(ex ? ex.volume : '') + '"' + (S.cfg.laporan_wajib_volume === 'YA' ? ' required' : '') + '></div>' +
     '<div><label>Satuan</label><select name="satuan">' + optsHtml(listOpt(S.cfg.satuan), ex && ex.satuan, '— pilih —') + '</select></div></div>' +
@@ -1328,11 +1330,11 @@ function laporanForm(ex) {
     var got = imgs.filter(Boolean);
     if (!ex && got.length < minFoto) { toast('Minimal ' + minFoto + ' foto dokumentasi.', 'err'); return; }
     var fotos = got.map(function (c) {
-      var lines = [S.user.nama + ' · ' + v.jenis, stampTime()];
+      var lines = [S.user.nama, stampTime()];
       if (pos) lines.push(pos.lat.toFixed(6) + ', ' + pos.lng.toFixed(6));
       return stamp(c, lines);
     });
-    var payload = { uid: Date.now().toString(36) + Math.random().toString(36).substr(2, 8), tsKlien: srvDate().getTime(), id: ex ? ex.id : '', jenis_pekerjaan: v.jenis, uraian: v.uraian, volume: v.volume, satuan: v.satuan, fotos: fotos, lat: pos ? pos.lat : '', lng: pos ? pos.lng : '' };
+    var payload = { uid: Date.now().toString(36) + Math.random().toString(36).substr(2, 8), tsKlien: srvDate().getTime(), id: ex ? ex.id : '', jenis_pekerjaan: ex ? (ex.jenis_pekerjaan || '-') : '-', uraian: v.uraian, volume: v.volume, satuan: v.satuan, fotos: fotos, lat: pos ? pos.lat : '', lng: pos ? pos.lng : '' };
     busy(function () { return sendOrQueue('apiLaporanSimpan', payload); }, 'Mengirim laporan…')
       .then(function (x) { gps.stop(); m.close(); toast(x.done ? 'Laporan tersimpan.' : 'Tidak ada koneksi. Laporan disimpan di perangkat dan dikirim otomatis saat sinyal kembali.', 'ok'); return x.done ? refreshToday() : null; })
       .then(function () { if (tPage === 'lap') tLaporan(); else tHome(); })
@@ -1454,15 +1456,15 @@ function t2Pdf(kind, f, t, list) {
   var u = S.user, pres = kind === 'pres';
   var rows = list.slice().reverse().map(function (r, i) {
     return pres ? [i + 1, t2D(r.tanggal), r.jam_masuk ? r.jam_masuk.substr(0, 5) : '-', r.jam_pulang ? r.jam_pulang.substr(0, 5) : '-', r.status || '-', r.jenis === 'HADIR' ? '' : (r.ket || '')] :
-      [i + 1, t2D(r.tanggal), String(r.waktu || '').substr(0, 5), r.jenis_pekerjaan, r.uraian, r.volume ? r.volume + ' ' + (r.satuan || '') : '-'];
+      [i + 1, t2D(r.tanggal), String(r.waktu || '').substr(0, 5), r.uraian, r.volume ? r.volume + ' ' + (r.satuan || '') : '-'];
   });
   var bytes = pdfBuild({
     instansi: String(S.cfg.nama_instansi || '').toUpperCase(),
     title: pres ? 'LAPORAN PRESENSI TENAGA OUTSOURCING' : 'LAPORAN PEKERJAAN TENAGA OUTSOURCING',
     subtitle: '',
     info: [['Nama', u.nama || ''], ['No. ID', u.no_id || ''], ['Bidang', u.bidang || '-'], ['Periode', t2D(f) + ' s/d ' + t2D(t)]],
-    headers: pres ? ['No', 'Tanggal', 'Masuk', 'Pulang', 'Status', 'Keterangan'] : ['No', 'Tanggal', 'Jam', 'Jenis pekerjaan', 'Uraian', 'Volume'],
-    widths: pres ? [28, 80, 56, 56, 80, 223] : [28, 70, 38, 110, 219, 58],
+    headers: pres ? ['No', 'Tanggal', 'Masuk', 'Pulang', 'Status', 'Keterangan'] : ['No', 'Tanggal', 'Jam', 'Uraian', 'Volume'],
+    widths: pres ? [28, 80, 56, 56, 80, 223] : [28, 70, 38, 329, 58],
     rows: rows,
     footer: 'Dicetak ' + t2D(S.tanggal) + ' · ' + appName()
   });
@@ -2061,8 +2063,8 @@ function aLaporan() {
     $$('#res [data-g]').forEach(function (a) { a.onclick = function (e) { e.preventDefault(); lapPerson(groups[+a.getAttribute('data-g')]); }; });
   }
   autoFilter(load);
-  var HD = ['tanggal', 'waktu', 'no_id', 'nama', 'kategori', 'bidang', 'tt', 'jenis_pekerjaan', 'uraian', 'volume', 'satuan', 'lat', 'lng'];
-  var HN = ['Tanggal', 'Jam', 'No. ID', 'Nama', 'Kategori', 'Bidang', 'Tempat Tugas', 'Jenis pekerjaan', 'Uraian', 'Volume', 'Satuan', 'Lat', 'Lng'];
+  var HD = ['tanggal', 'waktu', 'no_id', 'nama', 'kategori', 'bidang', 'tt', 'uraian', 'volume', 'satuan', 'lat', 'lng'];
+  var HN = ['Tanggal', 'Jam', 'No. ID', 'Nama', 'Kategori', 'Bidang', 'Tempat Tugas', 'Uraian', 'Volume', 'Satuan', 'Lat', 'Lng'];
   $('#exx').onclick = function () { downloadXlsx('laporan_' + f.dari + '_' + f.sampai + '.xlsx', 'Laporan', HN, data.map(function (r) { return HD.map(function (h) { return r[h]; }); })); };
   // Cetak = hanya data yang sedang tampil sesuai pilihan filter
   $('#prt').onclick = function () {
@@ -2077,7 +2079,7 @@ function aLaporan() {
 function lapPerson(g) {
   var body = '<div class="row mb"><b>' + esc(g.nama) + '</b><small>' + esc(g.no_id) + ' · ' + esc(g.kategori) + ' · ' + esc(g.bidang) + (g.tt ? ' · ' + esc(g.tt) : '') + '</small><span class="spacer"></span><span class="badge b-info">' + g.items.length + ' laporan</span></div>' +
     g.items.map(function (r) {
-      return '<div class="card" style="margin-bottom:10px"><b>' + esc(r.jenis_pekerjaan) + '</b><br><small>' + esc(tglId(r.tanggal)) + ' ' + esc(String(r.waktu || '').substr(0, 5)) +
+      return '<div class="card" style="margin-bottom:10px">' + (jn(r.jenis_pekerjaan) ? '<b>' + esc(r.jenis_pekerjaan) + '</b><br>' : '') + '<small>' + esc(tglId(r.tanggal)) + ' ' + esc(String(r.waktu || '').substr(0, 5)) +
         (r.lat ? ' · <a target="_blank" rel="noopener" href="' + mapLink(r.lat, r.lng) + '">📍 lokasi</a>' : '') + (r.diubah ? ' · diubah ' + esc(r.diubah) : '') + '</small>' +
         '<p style="white-space:pre-wrap;margin:6px 0">' + esc(r.uraian) + '</p>' + (r.volume ? '<p style="margin:0 0 6px"><b>Volume:</b> ' + esc(r.volume) + ' ' + esc(r.satuan) + '</p>' : '') + fotoGrid(r.foto, 'Dokumentasi') + '</div>';
     }).join('');
