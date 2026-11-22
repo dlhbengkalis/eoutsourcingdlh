@@ -2155,21 +2155,30 @@ function aLaporan() {
     api('apiLaporanList', f).then(function (r) { data = r.rows; draw(r.total); }).catch(function (e) { $('#res').innerHTML = '<div class="empty">' + esc(e.message) + ' <button class="btn btn-sm" id="rt">Coba lagi</button></div>'; if ($('#rt')) $('#rt').onclick = load; if (e.code === 'AUTH') onErr(e); });
   }
   function draw(total) {
-    var gi = {};
-    groups = [];
-    data.forEach(function (r) {
-      var g = gi[r.no_id];
-      if (g === undefined) { g = gi[r.no_id] = groups.length; groups.push({ no_id: r.no_id, nama: r.nama, kategori: r.kategori, bidang: r.bidang, tt: r.tt, items: [] }); }
-      groups[g].items.push(r);
-    });
-    groups.forEach(function (g) { g.items.sort(function (x, y) { return (x.tanggal + x.waktu) < (y.tanggal + y.waktu) ? -1 : 1; }); });
-    groups.sort(function (a, b) { return a.nama < b.nama ? -1 : a.nama > b.nama ? 1 : 0; });
-    var h = '<div class="row mb"><small class="muted">' + total + ' laporan dari ' + groups.length + ' tenaga' + (total > data.length ? ' (ditampilkan ' + data.length + ' terbaru, persempit filter)' : '') + '</small></div>';
-    h += tbl(['Nama', 'Kategori', 'Bidang', 'Tempat Tugas'], groups.map(function (g, i) {
-      return '<tr><td><a href="#" data-g="' + i + '" style="color:inherit;text-decoration:none"><b>' + esc(g.nama) + '</b></a></td><td>' + esc(g.kategori) + '</td><td>' + esc(g.bidang) + '</td><td>' + esc(g.tt) + '</td></tr>';
+    var rows = data.slice().sort(function (x, y) { return (x.tanggal + x.waktu) < (y.tanggal + y.waktu) ? 1 : -1; });
+    groups = rows;
+    var h = '<div class="row mb"><small class="muted">' + total + ' laporan' + (total > data.length ? ' (ditampilkan ' + data.length + ' terbaru, persempit filter)' : '') + '</small></div>';
+    h += tbl(['Tanggal', 'Nama', 'Bidang', 'Uraian', 'Volume', 'Aksi'], rows.map(function (r, i) {
+      var u = String(r.uraian || ''); if (u.length > 70) u = u.substr(0, 70) + '…';
+      return '<tr><td style="white-space:nowrap">' + esc(tglId(r.tanggal)) + '<br><small class="muted">' + esc(String(r.waktu || '').substr(0, 5)) + '</small></td>' +
+        '<td><b>' + esc(r.nama) + '</b></td><td>' + esc(r.bidang) + '</td>' +
+        '<td>' + (r.flag ? '<span title="' + esc(r.flag) + '">⚠️ </span>' : '') + esc(u) + '</td>' +
+        '<td style="white-space:nowrap">' + (r.volume ? esc(r.volume) + ' ' + esc(r.satuan) : '') + '</td>' +
+        '<td style="white-space:nowrap"><span class="rowact">' +
+        '<button class="btn btn-sm" data-lv="' + i + '">Lihat</button>' +
+        (canVerif() ? '<button class="btn btn-sm btn-ico" data-le="' + i + '" title="Ubah" aria-label="Ubah laporan">' + ic('edit') + '</button>' : '') +
+        (isSuper() ? '<button class="btn btn-sm btn-ico btn-dl" data-lx="' + i + '" title="Hapus" aria-label="Hapus laporan">' + ic('trash') + '</button>' : '') + '</span></td></tr>';
     }), 'Tidak ada laporan pada filter ini.');
     $('#res').innerHTML = h;
-    $$('#res [data-g]').forEach(function (a) { a.onclick = function (e) { e.preventDefault(); lapPerson(groups[+a.getAttribute('data-g')], load); }; });
+    function one(b, attr) { return groups[+b.getAttribute(attr)]; }
+    $$('#res [data-lv]').forEach(function (b) { b.onclick = function () { var r = one(b, 'data-lv'); lapPerson({ no_id: r.no_id, nama: r.nama, kategori: r.kategori, bidang: r.bidang, tt: r.tt, items: [r] }, load, true); }; });
+    $$('#res [data-le]').forEach(function (b) { b.onclick = function () { lapUbah(one(b, 'data-le'), load); }; });
+    $$('#res [data-lx]').forEach(function (b) {
+      b.onclick = function () {
+        var r = one(b, 'data-lx');
+        hapusAlasan('Hapus laporan', '<b>' + esc(r.nama) + '</b> · ' + esc(tglId(r.tanggal)) + '<br><small>' + esc(String(r.uraian || '').substr(0, 120)) + '</small>', 'apiLaporanHapus', r.id, load);
+      };
+    });
   }
   autoFilter(load);
   var HD = ['tanggal', 'waktu', 'no_id', 'nama', 'kategori', 'bidang', 'tt', 'uraian', 'volume', 'satuan', 'lat', 'lng', 'flag'];
@@ -2185,7 +2194,7 @@ function aLaporan() {
 }
 
 // rincian seluruh laporan satu tenaga (pada filter yang aktif); admin dapat mengubah / menghapus tiap laporan
-function lapPerson(g, reload) {
+function lapPerson(g, reload, tunggal) {
   var body = '<div class="row mb"><b>' + esc(g.nama) + '</b><small>' + esc(g.no_id) + ' · ' + esc(g.kategori) + ' · ' + esc(g.bidang) + (g.tt ? ' · ' + esc(g.tt) : '') + '</small><span class="spacer"></span><span class="badge b-info">' + g.items.length + ' laporan</span></div>' +
     g.items.map(function (r, i) {
       return '<div class="card" style="margin-bottom:10px">' + (jn(r.jenis_pekerjaan) ? '<b>' + esc(r.jenis_pekerjaan) + '</b><br>' : '') + '<small>' + esc(tglId(r.tanggal)) + ' ' + esc(String(r.waktu || '').substr(0, 5)) +
@@ -2196,6 +2205,7 @@ function lapPerson(g, reload) {
     }).join('');
   var m = openModal('Detail Laporan', body, { wide: true });
   lazyImgs(m.el);
+  if (tunggal) { var bj = $('.badge.b-info', m.el); if (bj) bj.remove(); }
   $$('[data-le]', m.el).forEach(function (b) { b.onclick = function () { m.close(); lapUbah(g.items[+b.getAttribute('data-le')], reload); }; });
   $$('[data-lx]', m.el).forEach(function (b) {
     b.onclick = function () {
