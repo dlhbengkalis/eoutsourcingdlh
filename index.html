@@ -1739,6 +1739,36 @@ function pwEye(root) {
     w.appendChild(b);
   });
 }
+/* password acak: 12 karakter (huruf besar, huruf kecil, angka; tanpa karakter yang mirip), dibuat dengan crypto.getRandomValues */
+function pwRandom(n) {
+  var U = 'ABCDEFGHJKLMNPQRSTUVWXYZ', L = 'abcdefghijkmnopqrstuvwxyz', D = '23456789', ALL = U + L + D;
+  function r(max) {
+    var lim = 256 - (256 % max), b = new Uint8Array(1);
+    do { crypto.getRandomValues(b); } while (b[0] >= lim);
+    return b[0] % max;
+  }
+  var out = [U.charAt(r(U.length)), L.charAt(r(L.length)), D.charAt(r(D.length))];
+  while (out.length < (n || 12)) out.push(ALL.charAt(r(ALL.length)));
+  for (var i = out.length - 1; i > 0; i--) { var j = r(i + 1), t = out[i]; out[i] = out[j]; out[j] = t; }
+  return out.join('');
+}
+/* tombol "Acak password" di bawah kolom sandi: isi kolom, tampilkan, lalu salin ke clipboard */
+function pwGen(root) {
+  var inp = $('input[name=password]', root); if (!inp) return;
+  var host = inp.parentNode.classList.contains('pw') ? inp.parentNode : inp;
+  var wrap = document.createElement('div'); wrap.style.cssText = 'margin-top:6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap';
+  var b = document.createElement('button'); b.type = 'button'; b.className = 'btn btn-sm'; b.textContent = 'Acak password';
+  var hint = document.createElement('small'); hint.className = 'muted'; hint.textContent = '12 karakter. Catat sebelum menyimpan.';
+  b.onclick = function () {
+    var v = pwRandom(12); inp.value = v;
+    if (inp.type === 'password') { var eye = host.querySelector('.eye'); if (eye) eye.click(); else inp.type = 'text'; }
+    var ok = function () { toast('Password acak dibuat dan disalin.', 'ok'); };
+    var no = function () { toast('Password acak dibuat. Salin manual dari kolom.', 'ok'); };
+    try { navigator.clipboard.writeText(v).then(ok, no); } catch (e) { no(); }
+  };
+  wrap.appendChild(b); wrap.appendChild(hint);
+  host.parentNode.insertBefore(wrap, host.nextSibling);
+}
 NAVI.edit = '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/>';
 var LOGO = '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 4l17 9.5v21L24 44 7 34.5v-21z" fill="#1f8bff"/><path d="M24 4l17 9.5L24 23 7 13.5z" fill="#6fd0ff"/><path d="M24 23v21L7 34.5v-21z" fill="#0a47e6"/><path d="M24 23l17-9.5v21L24 44z" fill="#1768ff"/></svg>';
 var ICO = {
@@ -2352,6 +2382,7 @@ function adminForm(a) {
     '<label>Status</label><select name="status"><option' + (a.status === 'Aktif' ? ' selected' : '') + '>Aktif</option><option' + (a.status === 'Nonaktif' ? ' selected' : '') + '>Nonaktif</option></select>' +
     '<button class="btn btn-primary btn-block mt">Simpan</button></form>');
   pwEye(m.el);
+  pwGen(m.el);
   $('#af', m.el).onsubmit = function (e) {
     e.preventDefault();
     busy(function () { return api('apiAdminSimpan', formVals(m.el)); }).then(function () { m.close(); toast('Tersimpan.', 'ok'); aSetting(); }).catch(onErr);
