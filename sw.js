@@ -1,7 +1,7 @@
 /* e-Outsourcing: simpan berkas aplikasi di perangkat. Buka berikutnya langsung tampil dari cache;
  * versi terbaru diambil di latar belakang dan dipakai pada pembukaan berikutnya. Panggilan API (host lain) tidak disentuh.
  * Naikkan angka V setiap index.html / berkas di bawah diganti. */
-var V = 'eo-shell-14';
+var V = 'eo-shell-15';
 var CORE = ['./', 'index.html', 'config.js', 'supa.js', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png'];
 self.addEventListener('install', function (e) {
   // pra-simpan berkas inti; kegagalan satu berkas tidak membatalkan pemasangan

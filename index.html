@@ -624,6 +624,46 @@ html.vwfix #app.tenaga{max-width:var(--vw)}
 .lrow:last-child{border-bottom:0}
 .lrow>input{flex:none;margin-top:3px}
 .lrow>div{min-width:0;overflow-wrap:anywhere}
+
+/* ---- Pengaturan (tab) ---- */
+.stabs{display:flex;gap:4px;border-bottom:1px solid var(--bd);margin:0 0 14px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.stabs button{border:0;background:none;padding:10px 14px;font:inherit;font-weight:600;color:var(--mu);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+.stabs button.on{color:var(--p);border-bottom-color:var(--p)}
+.sgrid{display:grid;grid-template-columns:1.25fr 1fr;gap:12px;align-items:start}
+.sgrid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.scard{background:#fff;border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:12px}
+.scard h3{margin:0 0 2px;font-size:15px;color:var(--navy)}
+.scard .sub{margin:0 0 12px;font-size:12.5px;color:var(--mu)}
+.scard hr{border:0;border-top:1px solid var(--bd);margin:14px 0}
+.s3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.inpsuf{position:relative}.inpsuf input{padding-right:52px}
+.inpsuf span{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--mu);pointer-events:none}
+.srow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0}
+.sw{width:42px;height:24px;border-radius:99px;background:#c5cfe4;position:relative;cursor:pointer;flex:none;transition:.15s}
+.sw i{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.15s;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.sw.on{background:var(--p)}.sw.on i{left:21px}
+.hkt{width:100%;border-collapse:collapse;font-size:13px}
+.hkt th,.hkt td{padding:6px 4px;border-bottom:1px solid var(--bd);text-align:left}
+.hkt th.c,.hkt td.c{text-align:center}
+.hkt input[type=checkbox]{width:17px;height:17px}
+.sbar{position:sticky;bottom:0;display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:10px 0;background:linear-gradient(transparent,var(--bg) 30%)}
+.jcard{background:#fff;border:1px solid var(--bd);border-radius:12px;margin-bottom:10px;overflow:hidden}
+.jhead{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer}
+.jhead .chev{width:18px;height:18px;flex:none;transition:.15s;fill:none;stroke:currentColor;stroke-width:2}
+.jcard.open .chev{transform:rotate(180deg)}
+.jsum{flex:1;min-width:0}.jsum .jn{font-weight:700;color:var(--navy)}.jsum .jc{font-size:12px;color:var(--mu);display:block}
+.jbody{display:none;padding:4px 14px 14px;border-top:1px solid var(--bd)}
+.jcard.open .jbody{display:block}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chk{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--bd);border-radius:99px;font-size:13px;cursor:pointer;background:#fff;user-select:none}
+.chk input{margin:0}
+.chk:has(input:checked){background:var(--pl);border-color:var(--p);color:var(--p);font-weight:600}
+.req{color:var(--danger)}
+.btn-dl{color:var(--danger);border-color:#e4b4ae;background:#fff}
+.sh4{margin:12px 0 6px;font-size:13px;color:var(--navy)}
+.rowact{display:inline-flex;gap:6px}
+.scard table th{text-transform:none;letter-spacing:0}
+@media(max-width:860px){.sgrid,.sgrid2{grid-template-columns:1fr}.s3{grid-template-columns:1fr 1fr}}
 </style>
 
   <title>e-Outsourcing DLH Kab. Bengkalis</title>
@@ -1841,9 +1881,9 @@ function drawTenaga() {
   function draw() {
     var rows = filt();
     $('#tb').innerHTML = '<small class="muted">' + rows.length + ' dari ' + S.tenaga.length + ' tenaga</small>' + tbl(
-      ['No', 'Nama', 'Tanggal Lahir', 'Kategori', 'Bidang', 'Tempat Tugas', ''],
+      ['No', 'Nama', 'Tanggal Lahir', 'Kategori', 'Bidang', 'Tempat Tugas', 'Lokasi Kerja', ''],
       rows.map(function (t, i) {
-        return '<tr><td>' + (i + 1) + '</td><td><b>' + esc(t.nama) + '</b></td><td style="white-space:nowrap">' + esc(lahirTxt(t)) + '</td><td>' + esc(t.kategori) + '</td><td>' + esc(t.bidang) + '</td><td>' + esc(t['Tempat Tugas']) + '</td>' +
+        return '<tr><td>' + (i + 1) + '</td><td><b>' + esc(t.nama) + '</b></td><td style="white-space:nowrap">' + esc(lahirTxt(t)) + '</td><td>' + esc(t.kategori) + '</td><td>' + esc(t.bidang) + '</td><td>' + esc(t['Tempat Tugas']) + '</td><td>' + esc(t.lokasi_kerja || '') + '</td>' +
           '<td style="white-space:nowrap">' + (isSuper() ? '<span class="rowact"><button class="btn btn-sm btn-ico" data-e="' + esc(t.no_id) + '" title="Ubah" aria-label="Ubah">' + ic('edit') + '</button><button class="btn btn-sm btn-ico" data-r="' + esc(t.no_id) + '" title="Reset PIN" aria-label="Reset PIN">' + ic('key') + '</button><button class="btn btn-sm btn-ico btn-danger" data-d="' + esc(t.no_id) + '" title="Hapus" aria-label="Hapus">' + ic('trash') + '</button></span>' : '') + '</td></tr>';
       }));
     $$('#tb [data-e]').forEach(function (b) { b.onclick = function () { tenagaForm(S.tenaga.filter(function (t) { return t.no_id === b.getAttribute('data-e'); })[0]); }; });
@@ -1867,7 +1907,7 @@ function drawTenaga() {
   ['fq', 'fk', 'fb', 'fc'].forEach(function (i) { $('#' + i).oninput = draw; });
   draw();
   if ($('#add')) $('#add').onclick = function () { tenagaForm(null); };
-  var H = ['no_id', 'nama', 'no_nik', 'pddk', 'tpt_lhr', 'tgl_lhr', 'Tanggal Lahir', 'kategori', 'alamat', 'kelurahan_desa', 'kecamatan', 'bidang', 'Tempat Tugas', 'jns_kelamin', 'no_hp', 'status'];
+  var H = ['no_id', 'nama', 'no_nik', 'pddk', 'tpt_lhr', 'tgl_lhr', 'Tanggal Lahir', 'kategori', 'alamat', 'kelurahan_desa', 'kecamatan', 'bidang', 'Tempat Tugas', 'lokasi_kerja', 'jns_kelamin', 'no_hp', 'status'];
   $('#exx').onclick = function () { downloadXlsx('data_tenaga_outsourcing.xlsx', 'Tenaga', H, filt().map(function (t) { return H.map(function (h) { return t[h]; }); })); };
   $('#prt').onclick = function () {
     printDoc('Data Tenaga Outsourcing', 'Dicetak ' + tglId(S.tanggal), ['No', 'No. ID', 'Nama', 'NIK', 'L/P', 'Pendidikan', 'TTL', 'Kategori', 'Bidang', 'Tempat Tugas', 'No. HP'],
@@ -1875,6 +1915,11 @@ function drawTenaga() {
   };
 }
 
+function lokOpts(cur) {
+  var l = ((S.cfg && S.cfg.lokasi) || []).map(function (x) { return x.nama; });
+  if (cur && l.indexOf(cur) < 0) l.push(cur);
+  return '<option value="">Semua lokasi (ikut jadwal)</option>' + l.map(function (n) { return '<option' + (n === cur ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('');
+}
 function tenagaForm(t) {
   var baru = !t; t = t || { status: 'Aktif', jns_kelamin: 'L' };
   var m = openModal(baru ? 'Tambah Tenaga' : 'Ubah Tenaga',
@@ -1892,12 +1937,24 @@ function tenagaForm(t) {
     frow('Kelurahan/Desa', '<input name="kelurahan_desa" value="' + esc(t.kelurahan_desa) + '">') +
     frow('Kecamatan', '<input name="kecamatan" value="' + esc(t.kecamatan) + '">') +
     '<div class="full">' + frow('Alamat', '<textarea name="alamat" style="min-height:60px">' + esc(t.alamat) + '</textarea>') + '</div>' +
+    frow('Lokasi kerja', '<select name="lokasi_kerja">' + lokOpts(t.lokasi_kerja) + '</select><small class="muted">Acuan lokasi presensi dan laporan. Kosong = ikut jadwal / semua lokasi.</small>') +
     frow('Status', '<select name="status"><option' + (t.status === 'Aktif' ? ' selected' : '') + '>Aktif</option><option' + (t.status === 'Nonaktif' ? ' selected' : '') + '>Nonaktif</option></select>') +
     '</div><button class="btn btn-primary btn-block mt">Simpan</button>' + (baru ? '<small class="muted">PIN awal acak dibuat otomatis dan ditampilkan satu kali setelah disimpan; tenaga wajib menggantinya saat login pertama.</small>' : '') + '</form>', { wide: true });
   $('#tf', m.el).onsubmit = function (e) {
     e.preventDefault();
     var v = formVals(m.el);
-    busy(function () { return api('apiTenagaSimpan', v, baru); }).then(function (r) { m.close(); toast('Tersimpan.', 'ok'); aTenaga(); if (baru && r && r.pin) showPins('PIN awal tenaga baru', [r]); }).catch(onErr);
+    var lokBaru = v.lokasi_kerja || ''; delete v.lokasi_kerja;
+    busy(function () {
+      return api('apiTenagaSimpan', v, baru).then(function (r) {
+        var nid = (r && r.no_id) || v.no_id, ubah = baru ? lokBaru !== '' : lokBaru !== (t.lokasi_kerja || '');
+        if (!ubah || !nid) return { r: r };
+        return api('apiTenagaLokasi', nid, lokBaru).then(function () { return { r: r }; }, function (e) { return { r: r, lokErr: e }; });
+      });
+    }).then(function (o) {
+      m.close(); aTenaga();
+      if (o.lokErr) toast('Data tersimpan, tetapi lokasi kerja gagal: ' + o.lokErr.message, 'err'); else toast('Tersimpan.', 'ok');
+      if (baru && o.r && o.r.pin) showPins('PIN awal tenaga baru', [o.r]);
+    }).catch(onErr);
   };
 }
 
@@ -2000,13 +2057,17 @@ function aPresensi() {
   }
   function draw(total) {
     var h = '<div class="row mb"><small class="muted">' + total + ' data' + (total > data.length ? ' (ditampilkan ' + data.length + ' terbaru, persempit filter)' : '') + '</small></div>';
-    h += tbl(['Tanggal', 'Nama', 'Bidang', 'Masuk', 'Pulang', 'Status'], data.map(function (r, i) {
+    h += tbl(['Tanggal', 'Nama', 'Bidang', 'Masuk', 'Pulang', 'Status', ''], data.map(function (r, i) {
       return '<tr><td>' + esc(tglId(r.tanggal)) + '</td><td><a href="#" data-i="' + i + '" style="color:inherit;text-decoration:none"><b>' + esc(r.nama) + '</b></a></td><td>' + esc(r.bidang) + '</td>' +
         '<td>' + esc(r.jam_masuk ? r.jam_masuk.substr(0, 5) : '-') + '</td><td>' + esc(r.jam_pulang ? r.jam_pulang.substr(0, 5) : '-') + '</td>' +
-        '<td>' + stBadge(r.status) + '</td></tr>';
+        '<td>' + stBadge(r.status) + '</td><td style="white-space:nowrap"><span class="rowact">' +
+        (canVerif() ? '<button class="btn btn-sm btn-ico" data-pe="' + i + '" title="Ubah" aria-label="Ubah presensi">' + ic('edit') + '</button>' : '') +
+        (isSuper() ? '<button class="btn btn-sm btn-ico btn-dl" data-px="' + i + '" title="Hapus" aria-label="Hapus presensi">' + ic('trash') + '</button>' : '') + '</span></td></tr>';
     }), 'Tidak ada data pada filter ini.');
     $('#res').innerHTML = h;
     $$('#res [data-i]').forEach(function (a) { a.onclick = function (e) { e.preventDefault(); presDetail(data[+a.getAttribute('data-i')], load); }; });
+    $$('#res [data-pe]').forEach(function (b) { b.onclick = function () { presKoreksi(data[+b.getAttribute('data-pe')], load); }; });
+    $$('#res [data-px]').forEach(function (b) { b.onclick = function () { presHapus(data[+b.getAttribute('data-px')], load); }; });
   }
   autoFilter(load);
   if ($('#pm')) $('#pm').onclick = function () { presKoreksi(null, load); };
@@ -2031,12 +2092,30 @@ function presDetail(r, reload) {
   if (r.jenis === 'HADIR') body += '<div class="grid">' + side('Masuk', r.jam_masuk, r.lat_masuk, r.lng_masuk, r.akurasi_masuk, r.jarak_masuk, r.foto_masuk) + side('Pulang', r.jam_pulang, r.lat_pulang, r.lng_pulang, r.akurasi_pulang, r.jarak_pulang, r.foto_pulang) + '</div>';
   else body += '<div class="card"><b>' + esc(r.status) + '</b>: ' + esc(r.ket) + '</div>';
   if (r.flag) body += '<div class="warnbox">⚠️ ' + esc(r.flag) + '</div>';
-  body += '<div class="row mt"><button class="btn btn-sm" id="kor">✎ Koreksi presensi</button></div>' +
+  body += '<div class="row mt"><button class="btn btn-sm" id="kor">✎ Koreksi presensi</button>' + (isSuper() ? '<button class="btn btn-sm btn-dl" id="hps">' + ic('trash') + ' Hapus</button>' : '') + '</div>' +
     (r.riwayat_koreksi ? '<div class="card mt"><h3>Riwayat koreksi</h3>' + String(r.riwayat_koreksi).split(' | ').map(function (x) { return '<small class="muted" style="display:block">' + esc(x) + '</small>'; }).join('') + '</div>' : '');
   var m = openModal('Detail Presensi', body, { wide: true });
   lazyImgs(m.el);
   if (!canVerif()) { $('#kor', m.el).parentNode.remove(); return; }
   $('#kor', m.el).onclick = function () { m.close(); presKoreksi(r, reload); };
+  if ($('#hps', m.el)) $('#hps', m.el).onclick = function () { m.close(); presHapus(r, reload); };
+}
+
+/* ---------- hapus presensi / laporan (SUPER, alasan wajib, tercatat di log) ---------- */
+function hapusAlasan(judul, ringkas, apiName, id, done) {
+  var m = openModal(judul,
+    '<form id="hf"><div class="warnbox">' + ringkas + '<br>Data dihapus permanen dan tidak dapat dikembalikan. Tindakan tercatat di Log.</div>' +
+    '<label>Alasan penghapusan (wajib)</label><input name="alasan" required minlength="5" maxlength="300" placeholder="mis. data ganda / salah input">' +
+    '<div class="row mt"><span class="spacer"></span><button type="button" class="btn" id="hb">Batal</button><button class="btn btn-danger">' + ic('trash') + ' Hapus</button></div></form>');
+  $('#hb', m.el).onclick = function () { m.close(); };
+  $('#hf', m.el).onsubmit = function (e) {
+    e.preventDefault();
+    var al = formVals(m.el).alasan;
+    busy(function () { return api(apiName, id, al); }).then(function () { m.close(); toast('Data dihapus.', 'ok'); done(); }).catch(onErr);
+  };
+}
+function presHapus(r, reload) {
+  hapusAlasan('Hapus presensi', '<b>' + esc(r.nama) + '</b> · ' + esc(tglId(r.tanggal)) + ' · ' + esc(r.status || ''), 'apiPresensiHapus', r.id, reload);
 }
 
 /* ---------- koreksi / input manual presensi (admin) ---------- */
@@ -2090,11 +2169,11 @@ function aLaporan() {
       return '<tr><td><a href="#" data-g="' + i + '" style="color:inherit;text-decoration:none"><b>' + esc(g.nama) + '</b></a></td><td>' + esc(g.kategori) + '</td><td>' + esc(g.bidang) + '</td><td>' + esc(g.tt) + '</td></tr>';
     }), 'Tidak ada laporan pada filter ini.');
     $('#res').innerHTML = h;
-    $$('#res [data-g]').forEach(function (a) { a.onclick = function (e) { e.preventDefault(); lapPerson(groups[+a.getAttribute('data-g')]); }; });
+    $$('#res [data-g]').forEach(function (a) { a.onclick = function (e) { e.preventDefault(); lapPerson(groups[+a.getAttribute('data-g')], load); }; });
   }
   autoFilter(load);
-  var HD = ['tanggal', 'waktu', 'no_id', 'nama', 'kategori', 'bidang', 'tt', 'uraian', 'volume', 'satuan', 'lat', 'lng'];
-  var HN = ['Tanggal', 'Jam', 'No. ID', 'Nama', 'Kategori', 'Bidang', 'Tempat Tugas', 'Uraian', 'Volume', 'Satuan', 'Lat', 'Lng'];
+  var HD = ['tanggal', 'waktu', 'no_id', 'nama', 'kategori', 'bidang', 'tt', 'uraian', 'volume', 'satuan', 'lat', 'lng', 'flag'];
+  var HN = ['Tanggal', 'Jam', 'No. ID', 'Nama', 'Kategori', 'Bidang', 'Tempat Tugas', 'Uraian', 'Volume', 'Satuan', 'Lat', 'Lng', 'Catatan lokasi'];
   $('#exx').onclick = function () { downloadXlsx('laporan_' + f.dari + '_' + f.sampai + '.xlsx', 'Laporan', HN, data.map(function (r) { return HD.map(function (h) { return r[h]; }); })); };
   // Cetak = hanya data yang sedang tampil sesuai pilihan filter
   $('#prt').onclick = function () {
@@ -2105,16 +2184,43 @@ function aLaporan() {
   load();
 }
 
-// rincian seluruh laporan satu tenaga (pada filter yang aktif)
-function lapPerson(g) {
+// rincian seluruh laporan satu tenaga (pada filter yang aktif); admin dapat mengubah / menghapus tiap laporan
+function lapPerson(g, reload) {
   var body = '<div class="row mb"><b>' + esc(g.nama) + '</b><small>' + esc(g.no_id) + ' · ' + esc(g.kategori) + ' · ' + esc(g.bidang) + (g.tt ? ' · ' + esc(g.tt) : '') + '</small><span class="spacer"></span><span class="badge b-info">' + g.items.length + ' laporan</span></div>' +
-    g.items.map(function (r) {
+    g.items.map(function (r, i) {
       return '<div class="card" style="margin-bottom:10px">' + (jn(r.jenis_pekerjaan) ? '<b>' + esc(r.jenis_pekerjaan) + '</b><br>' : '') + '<small>' + esc(tglId(r.tanggal)) + ' ' + esc(String(r.waktu || '').substr(0, 5)) +
         (r.lat ? ' · <a target="_blank" rel="noopener" href="' + mapLink(r.lat, r.lng) + '">📍 lokasi</a>' : '') + (r.diubah ? ' · diubah ' + esc(r.diubah) : '') + '</small>' +
-        '<p style="white-space:pre-wrap;margin:6px 0">' + esc(r.uraian) + '</p>' + (r.volume ? '<p style="margin:0 0 6px"><b>Volume:</b> ' + esc(r.volume) + ' ' + esc(r.satuan) + '</p>' : '') + fotoGrid(r.foto, 'Dokumentasi') + '</div>';
+        (r.flag ? '<div class="warnbox" style="margin:6px 0">⚠️ ' + esc(r.flag) + '</div>' : '') +
+        '<p style="white-space:pre-wrap;margin:6px 0">' + esc(r.uraian) + '</p>' + (r.volume ? '<p style="margin:0 0 6px"><b>Volume:</b> ' + esc(r.volume) + ' ' + esc(r.satuan) + '</p>' : '') + fotoGrid(r.foto, 'Dokumentasi') +
+        (canVerif() ? '<div class="row mt"><span class="spacer"></span><button class="btn btn-sm" data-le="' + i + '">' + ic('edit') + ' Ubah</button>' + (isSuper() ? '<button class="btn btn-sm btn-dl" data-lx="' + i + '">' + ic('trash') + ' Hapus</button>' : '') + '</div>' : '') + '</div>';
     }).join('');
   var m = openModal('Detail Laporan', body, { wide: true });
   lazyImgs(m.el);
+  $$('[data-le]', m.el).forEach(function (b) { b.onclick = function () { m.close(); lapUbah(g.items[+b.getAttribute('data-le')], reload); }; });
+  $$('[data-lx]', m.el).forEach(function (b) {
+    b.onclick = function () {
+      var r = g.items[+b.getAttribute('data-lx')];
+      m.close();
+      hapusAlasan('Hapus laporan', '<b>' + esc(r.nama) + '</b> · ' + esc(tglId(r.tanggal)) + '<br><small>' + esc(String(r.uraian || '').substr(0, 120)) + '</small>', 'apiLaporanHapus', r.id, reload || function () {});
+    };
+  });
+}
+function lapUbah(r, reload) {
+  var sat = (S.cfg && S.cfg.satuan) || [];
+  var m = openModal('Ubah laporan',
+    '<form id="lf"><p><b>' + esc(r.nama) + '</b> · ' + esc(r.no_id) + '</p>' +
+    '<label>Tanggal</label><input type="date" name="tanggal" value="' + esc(r.tanggal) + '" max="' + esc(dateIso()) + '" required>' +
+    '<label>Uraian pekerjaan</label><textarea name="uraian" required minlength="10" maxlength="1500" style="min-height:110px">' + esc(r.uraian) + '</textarea>' +
+    '<div class="grid"><div><label>Volume</label><input name="volume" inputmode="decimal" value="' + esc(r.volume || '') + '"></div>' +
+    '<div><label>Satuan</label><select name="satuan">' + optsHtml(sat, r.satuan, '—') + '</select></div></div>' +
+    '<label>Alasan perubahan (wajib, tercatat di Log)</label><input name="alasan" required minlength="5" maxlength="300" placeholder="mis. perbaikan salah ketik">' +
+    '<small class="muted">Status verifikasi laporan tidak berubah. Foto tidak dapat diubah oleh admin.</small>' +
+    '<button class="btn btn-primary btn-block mt">Simpan</button></form>');
+  $('#lf', m.el).onsubmit = function (e) {
+    e.preventDefault();
+    var v = formVals(m.el); v.id = r.id;
+    busy(function () { return api('apiLaporanAdminSimpan', v); }).then(function () { m.close(); toast('Laporan diperbarui.', 'ok'); if (reload) reload(); }).catch(onErr);
+  };
 }
 
 /* ---------- rekap ---------- */
@@ -2216,150 +2322,308 @@ function parseLatLng(t) {
   if (isNaN(la) || isNaN(lo) || Math.abs(la) > 90 || Math.abs(lo) > 180) return null;
   return { lat: la.toFixed(6), lng: lo.toFixed(6) };
 }
+/* ---------- pengaturan (admin): 5 tab ---------- */
+var SETTAB = 'pres';
+ICO.chev = '<polyline points="6 9 12 15 18 9"/>';
+ICO.pin = '<circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>';
+ICO.map = '<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5"/>';
+var BLNK = { jan: 1, feb: 2, mar: 3, apr: 4, mei: 5, may: 5, jun: 6, jul: 7, agu: 8, aug: 8, agt: 8, sep: 9, okt: 10, oct: 10, nov: 11, des: 12, dec: 12 };
+function isoOk(y, m, d) { var t = new Date(Date.UTC(y, m - 1, d)); return t.getUTCFullYear() === y && t.getUTCMonth() === m - 1 && t.getUTCDate() === d; }
+function isoStr(y, m, d) { return y + '-' + ('0' + m).slice(-2) + '-' + ('0' + d).slice(-2); }
+/* daftar tanggal bebas (2025-02-10, 10/02/2025, 10 Feb 2025 / 10 Februari 2025) -> yyyy-mm-dd unik dan terurut */
+function parseTanggal(text) {
+  var ok = {}, bad = [];
+  String(text || '').replace(/(\d{4}-\d{1,2}-\d{1,2})\s+(?=\d{4}-\d{1,2}-\d{1,2})/g, '$1,').split(/[,;\n]+/).forEach(function (tok) {
+    tok = tok.trim(); if (!tok) return;
+    var m, y, mo, d;
+    if ((m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(tok))) { y = +m[1]; mo = +m[2]; d = +m[3]; }
+    else if ((m = /^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})$/.exec(tok))) { d = +m[1]; mo = +m[2]; y = +m[3]; }
+    else if ((m = /^(\d{1,2})\s+([A-Za-z]+)\.?\s+(\d{4})$/.exec(tok))) { d = +m[1]; mo = BLNK[m[2].toLowerCase().substr(0, 3)]; y = +m[3]; }
+    if (y && mo && d && isoOk(y, mo, d)) ok[isoStr(y, mo, d)] = true; else bad.push(tok);
+  });
+  return { list: Object.keys(ok).sort(), bad: bad };
+}
+function badTgl(r) { return 'Format tanggal tidak dikenali: ' + r.bad.slice(0, 3).join(', ') + (r.bad.length > 3 ? ', …' : '') + '. Contoh: 2025-05-01 atau 1 Mei 2025.'; }
+
 function aSetting() {
   api('apiPengaturanGet').then(function (d) {
     var s = d.setting;
     var days = [['1', 'Sen'], ['2', 'Sel'], ['3', 'Rab'], ['4', 'Kam'], ['5', 'Jum'], ['6', 'Sab'], ['7', 'Min']];
+    var TABS = [['pres', 'Presensi'], ['lok', 'Lokasi kerja'], ['jad', 'Jadwal khusus'], ['pil', 'Daftar pilihan'], ['akun', 'Akun & keamanan']];
+    if (!TABS.some(function (t) { return t[0] === SETTAB; })) SETTAB = 'pres';
     var wz = (S.cfg && S.cfg.label_zona) || 'WIB';
     var lines = function (k) { return esc(listOpt(s[k]).join('\n')); };
     var hkk = {};
     try { hkk = JSON.parse(s.hari_kerja_kat || '{}') || {}; } catch (e) { hkk = {}; }
-    var kats = listOpt(s.kategori), bids = listOpt(s.bidang);
-    function hkOf(k) { return typeof hkk[k] === 'string' && hkk[k] !== '' ? hkk[k] : s.hari_kerja; }
+    function hkOf(k) { return typeof hkk[k] === 'string' && hkk[k] !== '' ? hkk[k] : (s.hari_kerja || '1,2,3,4,5'); }
     function hkTxt(str) { var a = String(str || '').split(','); return days.filter(function (x) { return a.indexOf(x[0]) >= 0; }).map(function (x) { return x[1]; }).join(', ') || '—'; }
+    function taLines(name, fallback) {
+      var ta = $('#sf [name=' + name + ']');
+      return ta ? String(ta.value).split('\n').map(function (x) { return x.trim(); }).filter(String) : listOpt(fallback);
+    }
+    function curKats() { return taLines('kategori', s.kategori); }
+    function curBids() { return taLines('bidang', s.bidang); }
+    var minFoto = (s.laporan_min_foto === '' || s.laporan_min_foto === undefined) ? '1' : String(s.laporan_min_foto);
+
     var h = '<h2>Pengaturan</h2>' +
-      '<form id="sf">' +
-      '<div class="card"><h3>Jam kerja & aturan presensi</h3><div class="grid">' +
-      frow('Jam masuk (' + wz + ')', '<input name="jam_masuk" type="time" value="' + esc(s.jam_masuk) + '">') + frow('Toleransi terlambat (menit)', '<input name="toleransi_menit" type="number" min="0" value="' + esc(s.toleransi_menit) + '">') +
-      frow('Jam pulang paling awal (' + wz + ')', '<input name="jam_pulang" type="time" value="' + esc(s.jam_pulang) + '">') + frow('Akurasi GPS maks. (meter)', '<input name="maks_akurasi_m" type="number" min="10" value="' + esc(s.maks_akurasi_m) + '">') +
-      frow('Tolak presensi di luar radius lokasi kerja', '<select name="wajib_radius"><option' + (s.wajib_radius === 'TIDAK' ? ' selected' : '') + '>TIDAK</option><option' + (s.wajib_radius === 'YA' ? ' selected' : '') + '>YA</option></select>') +
-      frow('Minimum foto per laporan (0-3)', '<input name="laporan_min_foto" type="number" min="0" max="3" value="' + esc(s.laporan_min_foto === '' || s.laporan_min_foto === undefined ? '1' : s.laporan_min_foto) + '">') +
-      '<div class="full"><label>Hari kerja per kategori</label><div id="hkbox"></div><div class="row mt"><button type="button" class="btn btn-sm" id="hkb">Detail hari kerja</button></div></div>' +
-      '<div class="full">' + frow('Tanggal libur / cuti bersama (yyyy-mm-dd, pisahkan koma)', '<textarea name="hari_libur" style="min-height:90px">' + esc(s.hari_libur) + '</textarea>') + '<small class="muted">Terisi otomatis sesuai kalender nasional (SKB 3 Menteri). Tambahkan atau ubah bila ada libur daerah; periksa SKB resmi setiap tahun.</small></div>' +
+      '<div class="stabs" role="tablist">' + TABS.map(function (t) { return '<button type="button" role="tab" data-t="' + t[0] + '">' + esc(t[1]) + '</button>'; }).join('') + '</div>' +
+
+      /* --- tab Presensi + Daftar pilihan (satu formulir, satu tombol simpan) --- */
+      '<form id="sf" autocomplete="off">' +
+      '<div class="spane" data-p="pres"><div class="sgrid">' +
+      '<div class="scard"><h3>Jam kerja (' + esc(wz) + ')</h3><p class="sub">Jam kerja umum. Kategori atau unit tertentu bisa diberi jadwal sendiri di tab Jadwal khusus.</p><div class="s3">' +
+      frow('Jam masuk', '<input name="jam_masuk" type="time" value="' + esc(s.jam_masuk) + '">') +
+      frow('Pulang paling awal', '<input name="jam_pulang" type="time" value="' + esc(s.jam_pulang) + '">') +
+      frow('Toleransi terlambat', '<div class="inpsuf"><input name="toleransi_menit" type="number" min="0" value="' + esc(s.toleransi_menit) + '"><span>menit</span></div>') +
+      '</div><hr><h3>Hari kerja per kategori</h3><p class="sub">Centang hari kerja untuk setiap kategori tenaga.</p><div id="hkbox"></div></div>' +
+
+      '<div class="scard"><h3>Aturan presensi</h3>' +
+      '<div class="srow"><label for="gpsm">Akurasi GPS maksimum</label><div class="inpsuf"><input id="gpsm" name="maks_akurasi_m" type="number" min="10" value="' + esc(s.maks_akurasi_m) + '"><span>meter</span></div></div>' +
+      '<div class="srow"><label id="swl">Tolak presensi di luar radius</label><button type="button" class="sw' + (s.wajib_radius === 'YA' ? ' on' : '') + '" id="swr" role="switch" aria-labelledby="swl" aria-checked="' + (s.wajib_radius === 'YA' ? 'true' : 'false') + '"><i></i></button><input type="hidden" name="wajib_radius" value="' + (s.wajib_radius === 'YA' ? 'YA' : 'TIDAK') + '"></div>' +
+      '<small class="muted" style="display:block;margin:-2px 0 6px">Bila mati, presensi di luar radius hanya diberi tanda ⚠️.</small>' +
+      '<div class="srow"><label for="mfo">Minimum foto per laporan</label><select id="mfo" name="laporan_min_foto">' + ['0', '1', '2', '3'].map(function (n) { return '<option' + (minFoto === n ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select></div>' +
+      '<hr><h3>Libur dan cuti bersama</h3><p class="sub">Terisi otomatis sesuai kalender nasional (SKB 3 Menteri). Tambahkan atau ubah bila ada libur daerah, dan periksa SKB resmi setiap tahun.</p>' +
+      '<div class="row" style="flex-wrap:nowrap"><input type="date" id="libd" aria-label="Pilih tanggal libur" style="flex:1"><button type="button" class="btn" id="libp">' + ic('plus') + ' Tempel daftar tanggal</button></div>' +
+      '<textarea name="hari_libur" id="libt" style="min-height:120px;margin-top:8px" placeholder="Tempel daftar tanggal (contoh: 10 Feb 2025, 28 Mar 2025)">' + esc(s.hari_libur) + '</textarea>' +
+      '<small class="muted" id="libn"></small></div>' +
       '</div></div>' +
-      '<div class="card"><h3>Daftar pilihan (satu per baris)</h3><div class="grid">' +
-      frow('Kategori tenaga', '<textarea name="kategori" style="min-height:150px">' + lines('kategori') + '</textarea>') +
-      frow('Bidang / penempatan', '<textarea name="bidang" style="min-height:150px">' + lines('bidang') + '</textarea>') + frow('Pendidikan', '<textarea name="pddk" style="min-height:150px">' + lines('pddk') + '</textarea>') + frow('Satuan volume pekerjaan', '<textarea name="satuan" style="min-height:150px">' + lines('satuan') + '</textarea>') +
+
+      '<div class="spane" data-p="pil"><div class="sgrid2">' +
+      '<div class="scard"><h3>Kategori tenaga</h3><p class="sub">Satu pilihan per baris</p><textarea name="kategori" style="min-height:170px">' + lines('kategori') + '</textarea></div>' +
+      '<div class="scard"><h3>Bidang / penempatan</h3><p class="sub">Satu pilihan per baris</p><textarea name="bidang" style="min-height:170px">' + lines('bidang') + '</textarea></div>' +
+      '<div class="scard"><h3>Pendidikan</h3><p class="sub">Satu pilihan per baris</p><textarea name="pddk" style="min-height:170px">' + lines('pddk') + '</textarea></div>' +
+      '<div class="scard"><h3>Satuan volume pekerjaan</h3><p class="sub">Satu pilihan per baris</p><textarea name="satuan" style="min-height:170px">' + lines('satuan') + '</textarea></div>' +
       '</div></div>' +
-      '<button class="btn btn-primary btn-lg btn-block">Simpan pengaturan</button></form>' +
-      '<div class="card mt"><h3>Lokasi kerja (geofence)</h3><p class="muted" style="margin-top:0">Jika diisi, jarak presensi dihitung ke lokasi terdekat. Presensi di luar radius diberi tanda ⚠️ (atau ditolak bila opsi di atas = YA). Kosongkan bila petugas bekerja berpindah-pindah (mis. penyapuan jalan). Klik "Buka Google Maps", pilih titik (klik kanan / tekan lama pada peta), salin koordinat atau tautannya, lalu tempel di kolom yang tersedia — Lat dan Lng terisi otomatis.</p><div id="lok"></div><div class="row mt"><button class="btn btn-sm" id="la">+ Tambah lokasi</button><button class="btn btn-sm" id="lg">📍 Isi dari lokasi saya</button><span class="spacer"></span><button class="btn btn-primary btn-sm" id="ls">Simpan lokasi</button></div></div>' +
-      '<div class="card"><h3>Jadwal / shift khusus</h3><div id="jsum"></div><div id="jad"></div><div class="row mt"><button class="btn btn-sm" id="ja">+ Tambah jadwal</button><span class="spacer"></span><button class="btn btn-primary btn-sm" id="js">Simpan jadwal</button></div></div>' +
-      '<div class="card"><h3>Akun admin</h3><div id="adm"></div><div class="row mt"><button class="btn btn-sm" id="aa">+ Tambah admin</button><button class="btn btn-sm" id="ap">Ganti password saya</button></div></div>' +
-      '<div class="card"><h3>Keamanan</h3><small class="muted">PIN awal tenaga dibuat acak dan berbeda untuk setiap tenaga (saat tambah, impor, atau reset), ditampilkan satu kali kepada admin, dan wajib diganti saat login pertama.</small></div>';
+      '<div class="sbar"><span class="spacer"></span><span class="badge b-warn hidden" id="sdirty">Belum disimpan</span><button class="btn btn-primary">Simpan pengaturan</button></div>' +
+      '</form>' +
+
+      '<div class="spane" data-p="lok" id="plok"></div>' +
+      '<div class="spane" data-p="jad" id="pjad"></div>' +
+      '<div class="spane" data-p="akun" id="pakun"></div>';
     $('#view').innerHTML = h;
 
-    function drawHK() {
-      $('#hkbox').innerHTML = kats.length ? kats.map(function (k) { return '<div class="row" style="padding:3px 0"><b style="min-width:210px">' + esc(k) + '</b><span>' + esc(hkTxt(hkOf(k))) + '</span></div>'; }).join('') : '<small class="muted">Belum ada kategori.</small>';
+    /* ----- tab ----- */
+    function setTab(t) {
+      SETTAB = t;
+      $$('.stabs button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-t') === t); b.setAttribute('aria-selected', b.getAttribute('data-t') === t ? 'true' : 'false'); });
+      $('#sf').classList.toggle('hidden', t !== 'pres' && t !== 'pil');
+      $$('#sf .spane').forEach(function (p) { p.classList.toggle('hidden', p.getAttribute('data-p') !== t); });
+      ['lok', 'jad', 'akun'].forEach(function (k) { $('#p' + k).classList.toggle('hidden', k !== t); });
+      if (t === 'jad') drawJad();
     }
-    drawHK();
-    $('#hkb').onclick = function () {
-      var cur = kats[0] || '';
-      var m = openModal('Detail hari kerja',
-        '<label>Kategori</label><select id="hkk">' + kats.map(function (k) { return '<option>' + esc(k) + '</option>'; }).join('') + '</select>' +
-        '<label>Hari kerja (tandai)</label><div class="row" id="hkd"></div>' +
-        '<small class="muted">Perubahan berlaku setelah menekan "Simpan pengaturan".</small><button type="button" class="btn btn-primary btn-block mt" id="hkx">Selesai</button>');
-      function drawDays() {
-        var a = hkOf(cur).split(',');
-        $('#hkd', m.el).innerHTML = days.map(function (x) { return '<label style="margin:0;font-weight:500"><input type="checkbox" class="hkc" value="' + x[0] + '"' + (a.indexOf(x[0]) >= 0 ? ' checked' : '') + '> ' + x[1] + '</label>'; }).join('');
-        $$('.hkc', m.el).forEach(function (c) { c.onchange = function () { hkk[cur] = $$('.hkc:checked', m.el).map(function (z) { return z.value; }).join(','); drawHK(); }; });
-      }
-      $('#hkk', m.el).onchange = function () { cur = this.value; drawDays(); };
-      $('#hkx', m.el).onclick = function () { m.close(); };
-      drawDays();
-    };
+    $$('.stabs button').forEach(function (b) { b.onclick = function () { setTab(b.getAttribute('data-t')); }; });
 
+    /* ----- tab Presensi ----- */
+    function drawHK() {
+      var ks = curKats();
+      $('#hkbox').innerHTML = ks.length ? '<div class="tablewrap"><table class="hkt"><thead><tr><th>Kategori</th>' + days.map(function (x) { return '<th class="c">' + x[1] + '</th>'; }).join('') + '</tr></thead><tbody>' +
+        ks.map(function (k, ki) {
+          var a = hkOf(k).split(',');
+          return '<tr><td><b>' + esc(k) + '</b></td>' + days.map(function (x) { return '<td class="c"><input type="checkbox" class="hkc" data-k="' + ki + '" value="' + x[0] + '"' + (a.indexOf(x[0]) >= 0 ? ' checked' : '') + ' aria-label="' + esc(k + ' ' + x[1]) + '"></td>'; }).join('') + '</tr>';
+        }).join('') + '</tbody></table></div>' : '<small class="muted">Belum ada kategori. Isi di tab Daftar pilihan.</small>';
+      $$('#hkbox .hkc').forEach(function (c) {
+        c.onchange = function () {
+          var ki = +c.getAttribute('data-k');
+          hkk[ks[ki]] = $$('#hkbox .hkc[data-k="' + ki + '"]:checked').map(function (z) { return z.value; }).join(',');
+          markDirty();
+        };
+      });
+    }
+    var fdirty = false;
+    function markDirty() { fdirty = true; $('#sdirty').classList.remove('hidden'); }
+    $('#sf').addEventListener('input', markDirty);
+    $('#sf [name=kategori]').addEventListener('input', drawHK);
+    drawHK();
+
+    $('#swr').onclick = function () {
+      var on = !this.classList.contains('on');
+      this.classList.toggle('on', on); this.setAttribute('aria-checked', on ? 'true' : 'false');
+      $('#sf [name=wajib_radius]').value = on ? 'YA' : 'TIDAK'; markDirty();
+    };
+    function libCount(n) { $('#libn').textContent = n + ' tanggal libur tercatat.'; }
+    function libNorm(showErr) {
+      var ta = $('#libt'), r = parseTanggal(ta.value);
+      if (r.bad.length) { if (showErr) toast(badTgl(r), 'err'); return false; }
+      ta.value = r.list.join(', '); libCount(r.list.length); return true;
+    }
+    libCount(parseTanggal(s.hari_libur).list.length);
+    $('#libt').onchange = function () { libNorm(true); markDirty(); };
+    $('#libd').onchange = function () { if (!this.value) return; var ta = $('#libt'); ta.value = (ta.value.trim() ? ta.value.trim() + ', ' : '') + this.value; this.value = ''; libNorm(true); markDirty(); };
+    $('#libp').onclick = function () {
+      var ta = $('#libt');
+      function noclip() { ta.focus(); toast('Tidak bisa membaca clipboard. Tempel manual di kolom, lalu klik di luar kolom.', 'err'); }
+      try { navigator.clipboard.readText().then(function (t) { ta.value = (ta.value.trim() ? ta.value.trim() + ', ' : '') + t; libNorm(true); markDirty(); }, noclip); } catch (e) { noclip(); }
+    };
     $('#sf').onsubmit = function (e) {
       e.preventDefault();
+      if (!libNorm(true)) { setTab('pres'); return; }
       var v = formVals($('#sf'));
       ['kategori', 'bidang', 'pddk', 'satuan'].forEach(function (k) { v[k] = String(v[k] || '').split('\n').map(function (x) { return x.trim().replace(/;/g, ','); }).filter(String).join(';'); });
       v.hari_kerja_kat = JSON.stringify(hkk);
       v.hari_libur = String(v.hari_libur || '').replace(/\s+/g, '');
-      busy(function () { return api('apiPengaturanSimpan', v); }).then(function () { toast('Pengaturan disimpan.', 'ok'); return api('apiBootstrap'); })
+      busy(function () { return api('apiPengaturanSimpan', v); }).then(function () { fdirty = false; $('#sdirty').classList.add('hidden'); toast('Pengaturan disimpan.', 'ok'); return api('apiBootstrap'); })
         .then(function (b) { S.cfg = b.cfg; S.opsi = b.opsi; }).catch(onErr);
     };
 
-    var lok = d.lokasi.slice();
-    function mapUrl(l) { var la = parseFloat(l.lat), lo = parseFloat(l.lng); return (!isNaN(la) && !isNaN(lo)) ? 'https://www.google.com/maps/search/?api=1&query=' + la + ',' + lo : 'https://www.google.com/maps'; }
-    function drawLok() {
-      $('#lok').innerHTML = lok.length ? lok.map(function (l, i) {
-        return '<div class="lokrow"><div><label>Nama</label><input data-k="nama" data-i="' + i + '" value="' + esc(l.nama) + '"></div>' +
-          '<div><label>Lat</label><input data-k="lat" data-i="' + i + '" value="' + esc(l.lat) + '"></div><div><label>Lng</label><input data-k="lng" data-i="' + i + '" value="' + esc(l.lng) + '"></div>' +
-          '<div><label>Radius (m)</label><input data-k="radius_m" data-i="' + i + '" value="' + esc(l.radius_m) + '"></div><button class="btn btn-sm btn-danger" data-x="' + i + '">✕</button>' +
-          '<div style="grid-column:1/-1" class="row"><a class="btn btn-sm" target="_blank" rel="noopener" href="' + esc(mapUrl(l)) + '">🗺️ Buka Google Maps</a>' +
-          '<input data-paste="' + i + '" placeholder="Tempel tautan / koordinat dari Google Maps di sini" style="flex:1;min-width:220px"><button class="btn btn-sm" data-clip="' + i + '">Tempel</button></div></div>';
-      }).join('') : '<small class="muted">Belum ada lokasi — geofence tidak aktif.</small>';
-      $$('#lok input[data-k]').forEach(function (inp) { inp.oninput = function () { lok[+inp.getAttribute('data-i')][inp.getAttribute('data-k')] = inp.value; }; });
-      function fill(i, txt) {
+    /* ----- tab Lokasi kerja ----- */
+    var lok = d.lokasi.map(function (l) { return Object.assign({}, l); });
+    var ldirty = false;
+    function lokNames() { return lok.map(function (l) { return l.nama; }).filter(String); }
+    function mapUrl(l) { var la = parseFloat(l && l.lat), lo = parseFloat(l && l.lng); return (!isNaN(la) && !isNaN(lo)) ? 'https://www.google.com/maps/search/?api=1&query=' + la + ',' + lo : 'https://www.google.com/maps'; }
+    function lokForm(i, pre) {
+      var baru = i < 0, l = baru ? Object.assign({ nama: '', lat: '', lng: '', radius_m: 100 }, pre || {}) : lok[i];
+      var m = openModal(baru ? 'Tambah lokasi' : 'Ubah lokasi',
+        '<form id="lf3"><label>Nama lokasi</label><input name="nama" value="' + esc(l.nama) + '" required maxlength="80" placeholder="mis. Kantor DLH Bengkalis">' +
+        '<div class="grid"><div><label>Latitude</label><input name="lat" value="' + esc(l.lat) + '" inputmode="decimal" required></div><div><label>Longitude</label><input name="lng" value="' + esc(l.lng) + '" inputmode="decimal" required></div>' +
+        '<div><label>Radius (meter)</label><input name="radius_m" type="number" min="10" value="' + esc(l.radius_m) + '" required></div></div>' +
+        '<label>Tempel tautan atau koordinat dari Google Maps</label><div class="row" style="flex-wrap:nowrap"><input id="lfp" placeholder="mis. 1.482296, 102.129445" style="flex:1"><button type="button" class="btn" id="lfc">Tempel</button></div>' +
+        '<div class="row mt"><a class="btn btn-sm" id="lfm" target="_blank" rel="noopener" href="' + esc(mapUrl(l)) + '">' + ic('map') + ' Buka Google Maps</a></div>' +
+        (baru ? '' : '<small class="muted" style="display:block;margin-top:8px">Mengganti nama memutus kaitan dengan jadwal khusus yang memakai nama lama.</small>') +
+        '<button class="btn btn-primary btn-block mt">Simpan</button></form>');
+      function fill(txt) {
         var p = parseLatLng(txt);
         if (!p) { toast('Koordinat tidak terbaca. Salin angka "lat, lng" atau tautan Google Maps lengkap.', 'err'); return; }
-        lok[i].lat = p.lat; lok[i].lng = p.lng; drawLok(); toast('Lat dan Lng terisi.', 'ok');
+        $('[name=lat]', m.el).value = p.lat; $('[name=lng]', m.el).value = p.lng; $('#lfp', m.el).value = ''; $('#lfm', m.el).href = mapUrl(p); toast('Lat dan Lng terisi.', 'ok');
       }
-      $$('#lok [data-paste]').forEach(function (inp) {
-        var i = +inp.getAttribute('data-paste');
-        inp.onpaste = function () { setTimeout(function () { fill(i, inp.value); }, 0); };
-        inp.onchange = function () { if (inp.value.trim()) fill(i, inp.value); };
-      });
-      $$('#lok [data-clip]').forEach(function (b) {
+      $('#lfp', m.el).onpaste = function () { var t = this; setTimeout(function () { fill(t.value); }, 0); };
+      $('#lfp', m.el).onchange = function () { if (this.value.trim()) fill(this.value); };
+      $('#lfc', m.el).onclick = function () {
+        function noclip() { toast('Tidak bisa membaca clipboard. Tempel manual di kolom.', 'err'); }
+        try { navigator.clipboard.readText().then(fill, noclip); } catch (e) { noclip(); }
+      };
+      $('#lf3', m.el).onsubmit = function (e) {
+        e.preventDefault();
+        var v = formVals(m.el), la = parseFloat(v.lat), lo = parseFloat(v.lng), r = parseInt(v.radius_m, 10), nm = String(v.nama).trim();
+        if (!nm) { toast('Isi nama lokasi.', 'err'); return; }
+        if (isNaN(la) || isNaN(lo) || Math.abs(la) > 90 || Math.abs(lo) > 180) { toast('Latitude atau longitude tidak valid.', 'err'); return; }
+        if (isNaN(r) || r < 1) { toast('Radius harus berupa angka lebih dari 0.', 'err'); return; }
+        if (lok.some(function (x, j) { return j !== i && String(x.nama).trim().toLowerCase() === nm.toLowerCase(); })) { toast('Nama lokasi sudah dipakai.', 'err'); return; }
+        var item = { nama: nm, lat: la.toFixed(6), lng: lo.toFixed(6), radius_m: r };
+        if (baru) lok.push(item); else lok[i] = item;
+        ldirty = true; m.close(); drawLok();
+      };
+    }
+    function drawLok() {
+      $('#plok').innerHTML = '<div class="scard"><h3>Lokasi kerja</h3><p class="sub">Presensi di luar radius ditandai atau ditolak sesuai aturan presensi. Kosongkan daftar bila petugas bekerja berpindah-pindah (mis. penyapuan jalan).</p>' +
+        '<div class="row mb"><button type="button" class="btn btn-primary" id="la">' + ic('plus') + ' Tambah lokasi</button><a class="btn" target="_blank" rel="noopener" href="https://www.google.com/maps">' + ic('map') + ' Buka Google Maps</a><button type="button" class="btn" id="lg">' + ic('pin') + ' Isi dari lokasi saya</button></div>' +
+        '<input id="lpaste" placeholder="Tempel tautan atau koordinat dari Google Maps" autocomplete="off">' +
+        '<small class="muted" style="display:block;margin:6px 0 12px">Di Google Maps, klik kanan (di HP: tekan lama) pada titik lokasi, lalu salin koordinat atau tautannya.</small>' +
+        tbl(['Nama lokasi', 'Latitude', 'Longitude', 'Radius', 'Aksi'], lok.map(function (l, i) {
+          return '<tr><td><b>' + esc(l.nama) + '</b></td><td>' + esc(l.lat) + '</td><td>' + esc(l.lng) + '</td><td>' + esc(l.radius_m) + ' meter</td>' +
+            '<td><span class="rowact"><button type="button" class="btn btn-sm btn-ico" data-le="' + i + '" title="Ubah" aria-label="Ubah ' + esc(l.nama) + '">' + ic('edit') + '</button><button type="button" class="btn btn-sm btn-ico btn-dl" data-lx="' + i + '" title="Hapus" aria-label="Hapus ' + esc(l.nama) + '">' + ic('trash') + '</button></span></td></tr>';
+        }), 'Belum ada lokasi kerja. Geofence tidak aktif.') +
+        '<div class="row mt"><span class="spacer"></span><span class="badge b-warn' + (ldirty ? '' : ' hidden') + '">Belum disimpan</span><button type="button" class="btn btn-primary" id="ls">Simpan lokasi</button></div></div>';
+      $('#la').onclick = function () { lokForm(-1); };
+      $('#lg').onclick = function () {
+        if (!navigator.geolocation) { toast('Browser tidak mendukung GPS.', 'err'); return; }
+        loading(true, 'Mencari lokasi…');
+        navigator.geolocation.getCurrentPosition(function (p) { loading(false); lokForm(-1, { lat: p.coords.latitude.toFixed(6), lng: p.coords.longitude.toFixed(6) }); },
+          function () { loading(false); toast('Lokasi tidak dapat diambil. Isi koordinat secara manual.', 'err'); }, { enableHighAccuracy: true, timeout: 20000 });
+      };
+      function fromPaste(txt) {
+        var p = parseLatLng(txt);
+        if (!p) { toast('Koordinat tidak terbaca. Salin angka "lat, lng" atau tautan Google Maps lengkap.', 'err'); return; }
+        $('#lpaste').value = ''; lokForm(-1, p);
+      }
+      $('#lpaste').onpaste = function () { var t = this; setTimeout(function () { fromPaste(t.value); }, 0); };
+      $('#lpaste').onchange = function () { if (this.value.trim()) fromPaste(this.value); };
+      $$('#plok [data-le]').forEach(function (b) { b.onclick = function () { lokForm(+b.getAttribute('data-le')); }; });
+      $$('#plok [data-lx]').forEach(function (b) {
         b.onclick = function () {
-          var i = +b.getAttribute('data-clip');
-          try { navigator.clipboard.readText().then(function (t) { fill(i, t); }, function () { toast('Tidak bisa membaca clipboard. Tempel manual di kolom.', 'err'); }); } catch (e) { toast('Tidak bisa membaca clipboard. Tempel manual di kolom.', 'err'); }
+          var i = +b.getAttribute('data-lx');
+          ask('Hapus lokasi "' + lok[i].nama + '" dari daftar? Perubahan berlaku setelah menekan Simpan lokasi.', 'Hapus', true).then(function (ok) { if (ok) { lok.splice(i, 1); ldirty = true; drawLok(); } });
         };
       });
-      $$('#lok [data-x]').forEach(function (b) { b.onclick = function () { lok.splice(+b.getAttribute('data-x'), 1); drawLok(); }; });
+      $('#ls').onclick = function () {
+        busy(function () { return api('apiLokasiSimpan', lok); }).then(function () { ldirty = false; drawLok(); toast('Lokasi tersimpan.', 'ok'); return api('apiBootstrap'); }).then(function (b) { S.cfg = b.cfg; }).catch(onErr);
+      };
     }
     drawLok();
-    $('#la').onclick = function () { lok.push({ nama: '', lat: '', lng: '', radius_m: 100 }); drawLok(); };
-    $('#lg').onclick = function () {
-      if (!navigator.geolocation) { toast('Browser tidak mendukung GPS.', 'err'); return; }
-      loading(true, 'Mencari lokasi…');
-      navigator.geolocation.getCurrentPosition(function (p) { loading(false); lok.push({ nama: 'Lokasi baru', lat: p.coords.latitude.toFixed(6), lng: p.coords.longitude.toFixed(6), radius_m: 100 }); drawLok(); },
-        function () { loading(false); toast('Lokasi tidak dapat diambil. Isi koordinat secara manual.', 'err'); }, { enableHighAccuracy: true, timeout: 20000 });
-    };
-    $('#ls').onclick = function () { busy(function () { return api('apiLokasiSimpan', lok); }).then(function () { toast('Lokasi tersimpan.', 'ok'); return api('apiBootstrap'); }).then(function (b) { S.cfg = b.cfg; }).catch(onErr); };
 
+    /* ----- tab Jadwal khusus ----- */
     var jad = (d.jadwal || []).map(function (x) { return Object.assign({}, x); });
-    var saved = (d.jadwal || []).map(function (x) { return Object.assign({}, x); });
-    var lokNames = (d.lokasi || []).map(function (l) { return l.nama; }).filter(String);
-    function drawJsum() {
-      $('#jsum').innerHTML = saved.length ? tbl(['Jadwal tersimpan', 'Kategori', 'Bidang', 'Jam (' + wz + ')', 'Hari kerja'], saved.map(function (x) {
-        return '<tr><td><b>' + esc(x.nama) + '</b></td><td>' + esc(x.kategori || 'Semua') + '</td><td>' + esc(x.bidang || 'Semua') + '</td><td style="white-space:nowrap">' + esc((x.jam_masuk || s.jam_masuk) + ' – ' + (x.jam_pulang || s.jam_pulang)) + (x.lintas_hari === 'YA' ? ' (lintas hari)' : '') + '</td><td>' + esc(x.hari_kerja ? hkTxt(x.hari_kerja) : 'Ikut pengaturan') + '</td></tr>';
-      })) : '<small class="muted">Belum ada jadwal khusus tersimpan — semua tenaga memakai pengaturan umum.</small>';
+    var openJ = -1;
+    function jsum(x) {
+      return '<span class="jn">' + esc(x.nama || 'Jadwal baru') + '</span><span class="jc">' + esc(x.kategori || 'Semua kategori') + '</span><span class="jc">' + esc(x.bidang || 'Semua unit') + '</span>' +
+        '<span class="jc">' + esc((x.jam_masuk || s.jam_masuk) + '–' + (x.jam_pulang || s.jam_pulang) + ' ' + wz) + '</span><span class="jc">' + esc(x.hari_kerja ? hkTxt(x.hari_kerja) : 'Ikut pengaturan umum') + '</span>' +
+        (x.lintas_hari === 'YA' ? '<span class="jc"><span class="badge b-info">Lintas hari</span></span>' : '');
     }
-    drawJsum();
     function drawJad() {
-      $('#jad').innerHTML = jad.length ? jad.map(function (x, i) {
-        var hkj = String(x.hari_kerja || '').split(',');
-        var lkj = String(x.lokasi || '').split(';');
-        var at = ' data-i="' + i + '"';
-        return '<div class="card" style="background:#f7faf8"><div class="grid">' +
-          frow('Nama jadwal', '<input data-k="nama"' + at + ' value="' + esc(x.nama) + '">') +
-          frow('Kategori (kosong = semua)', '<select data-k="kategori"' + at + '>' + optsHtml(kats, x.kategori, '— semua —') + '</select>') +
-          frow('Bidang (kosong = semua)', '<select data-k="bidang"' + at + '>' + optsHtml(bids, x.bidang, '— semua —') + '</select>') +
-          frow('Jam masuk (' + wz + ')', '<input type="time" data-k="jam_masuk"' + at + ' value="' + esc(x.jam_masuk) + '">') +
-          frow('Jam pulang paling awal (' + wz + ')', '<input type="time" data-k="jam_pulang"' + at + ' value="' + esc(x.jam_pulang) + '">') +
-          frow('Toleransi terlambat (menit)', '<input type="number" min="0" data-k="toleransi_menit"' + at + ' value="' + esc(x.toleransi_menit) + '">') +
-          frow('Lintas hari (pulang melewati tengah malam)', '<select data-k="lintas_hari"' + at + '><option value="">TIDAK</option><option value="YA"' + (x.lintas_hari === 'YA' ? ' selected' : '') + '>YA</option></select>') +
-          '<div class="full"><label>Lokasi kerja yang berlaku (kosongkan semua = semua lokasi)</label><div class="row">' + (lokNames.length ? lokNames.map(function (ln) { return '<label style="margin:0;font-weight:500"><input type="checkbox" class="jlk"' + at + ' value="' + esc(ln) + '"' + (lkj.indexOf(ln) >= 0 ? ' checked' : '') + '> ' + esc(ln) + '</label>'; }).join('') : '<small class="muted">Belum ada lokasi kerja tersimpan.</small>') + '</div></div>' +
-          frow('Wajib berada dalam radius lokasi', '<select data-k="wajib_radius"' + at + '><option value="">Ikut pengaturan umum</option><option value="YA"' + (x.wajib_radius === 'YA' ? ' selected' : '') + '>YA (tolak di luar radius)</option><option value="TIDAK"' + (x.wajib_radius === 'TIDAK' ? ' selected' : '') + '>TIDAK (hanya tandai ⚠️)</option></select>') +
-          '<div class="full">' + frow('Hari libur khusus jadwal ini (yyyy-mm-dd, pisahkan koma; ditambahkan ke libur umum)', '<textarea data-k="hari_libur"' + at + ' style="min-height:50px">' + esc(x.hari_libur) + '</textarea>') + '</div>' +
-          '<div class="full"><label>Hari kerja (kosongkan semua = ikut pengaturan umum)</label><div class="row">' + days.map(function (dd) { return '<label style="margin:0;font-weight:500"><input type="checkbox" class="jhk"' + at + ' value="' + dd[0] + '"' + (hkj.indexOf(dd[0]) >= 0 ? ' checked' : '') + '> ' + dd[1] + '</label>'; }).join('') + '</div></div>' +
-          '</div><button class="btn btn-sm btn-danger" data-jx="' + i + '">Hapus jadwal</button></div>';
-      }).join('') : '';
-      $$('#jad [data-k]').forEach(function (inp) { inp.oninput = inp.onchange = function () { jad[+inp.getAttribute('data-i')][inp.getAttribute('data-k')] = inp.value; }; });
-      $$('#jad .jlk').forEach(function (cb) { cb.onchange = function () { var i = +cb.getAttribute('data-i'); jad[i].lokasi = $$('#jad .jlk[data-i="' + i + '"]:checked').map(function (c) { return c.value; }).join(';'); }; });
-      $$('#jad .jhk').forEach(function (cb) { cb.onchange = function () { var i = +cb.getAttribute('data-i'); jad[i].hari_kerja = $$('#jad .jhk[data-i="' + i + '"]:checked').map(function (c) { return c.value; }).join(','); }; });
-      $$('#jad [data-jx]').forEach(function (b) { b.onclick = function () { jad.splice(+b.getAttribute('data-jx'), 1); drawJad(); }; });
+      var kats = curKats(), bids = curBids(), ln = lokNames();
+      $('#pjad').innerHTML = '<div class="row mb"><div><h3 style="margin:0;font-size:19px;color:var(--navy)">Jadwal khusus</h3><small class="muted">Atur jadwal kerja khusus per kategori tenaga, unit, dan lokasi kerja. Tenaga tanpa jadwal khusus memakai pengaturan umum.</small></div><span class="spacer"></span><button type="button" class="btn btn-primary" id="ja">' + ic('plus') + ' Tambah jadwal</button></div>' +
+        (jad.length ? jad.map(function (x, i) {
+          var at = ' data-i="' + i + '"', hkj = String(x.hari_kerja || '').split(','), lkj = String(x.lokasi || '').split(';'), op = openJ === i;
+          return '<div class="jcard' + (op ? ' open' : '') + '"><div class="jhead" data-jh="' + i + '"><span class="chev">' + ic('chev') + '</span><span class="jsum" id="jh' + i + '">' + jsum(x) + '</span><span class="spacer"></span><button type="button" class="btn btn-sm" data-jo="' + i + '">' + ic('edit') + ' ' + (op ? 'Tutup' : 'Ubah') + '</button></div>' +
+            (op ? '<div class="jbody"><div class="s3">' +
+              '<div><label>Nama jadwal <span class="req">*</span></label><input data-k="nama"' + at + ' value="' + esc(x.nama) + '" placeholder="mis. Shift 1 Petugas Keamanan"></div>' +
+              frow('Kategori tenaga', '<select data-k="kategori"' + at + '>' + optsHtml(kats, x.kategori, 'Semua kategori') + '</select>') +
+              frow('Bidang / unit', '<select data-k="bidang"' + at + '>' + optsHtml(bids, x.bidang, 'Semua unit') + '</select>') + '</div>' +
+              '<div class="s3" style="align-items:end">' +
+              '<div><label>Waktu kerja (' + esc(wz) + ')</label><div class="row" style="flex-wrap:nowrap;gap:6px"><input type="time" data-k="jam_masuk"' + at + ' value="' + esc(x.jam_masuk) + '" aria-label="Jam masuk"><span>–</span><input type="time" data-k="jam_pulang"' + at + ' value="' + esc(x.jam_pulang) + '" aria-label="Jam pulang"></div></div>' +
+              frow('Toleransi keterlambatan', '<div class="inpsuf"><input type="number" min="0" data-k="toleransi_menit"' + at + ' value="' + esc(x.toleransi_menit) + '"><span>menit</span></div>') +
+              '<div><label class="chk"><input type="checkbox" data-k="lintas_hari"' + at + (x.lintas_hari === 'YA' ? ' checked' : '') + '> Lintas hari</label><small class="muted">Centang jika jadwal melewati hari berikutnya (mis. 22:00–06:00).</small></div></div>' +
+              '<label>Hari kerja <small class="muted" style="font-weight:500">(kosongkan semua = ikut pengaturan umum)</small></label><div class="chips">' + days.map(function (dd) { return '<label><input type="checkbox" class="jhk"' + at + ' value="' + dd[0] + '"' + (hkj.indexOf(dd[0]) >= 0 ? ' checked' : '') + '> ' + dd[1] + '</label>'; }).join('') + '</div>' +
+              '<div class="s3"><div style="grid-column:span 1"><label>Lokasi kerja <small class="muted" style="font-weight:500">(kosongkan semua = semua lokasi)</small></label><div class="chips">' + (ln.length ? ln.map(function (n) { return '<label><input type="checkbox" class="jlk"' + at + ' value="' + esc(n) + '"' + (lkj.indexOf(n) >= 0 ? ' checked' : '') + '> ' + esc(n) + '</label>'; }).join('') : '<small class="muted">Belum ada lokasi kerja. Tambahkan di tab Lokasi kerja.</small>') + '</div></div>' +
+              frow('Wajib dalam radius', '<select data-k="wajib_radius"' + at + '><option value="">Ikut pengaturan umum</option><option value="YA"' + (x.wajib_radius === 'YA' ? ' selected' : '') + '>YA (tolak di luar radius)</option><option value="TIDAK"' + (x.wajib_radius === 'TIDAK' ? ' selected' : '') + '>TIDAK (hanya tandai ⚠️)</option></select>') +
+              '<div><label>Hari libur khusus</label><input data-k="hari_libur"' + at + ' value="' + esc(x.hari_libur) + '" placeholder="YYYY-MM-DD"><small class="muted">Pisahkan beberapa tanggal dengan koma, mis. 2025-05-01, 2025-05-02. Ditambahkan ke libur umum.</small></div></div>' +
+              '<div class="row mt"><button type="button" class="btn btn-dl" data-jx="' + i + '">Hapus jadwal</button><span class="spacer"></span><button type="button" class="btn btn-primary" data-js="1">Simpan jadwal</button></div></div>' : '') + '</div>';
+        }).join('') : '<div class="empty">Belum ada jadwal khusus. Semua tenaga memakai pengaturan umum.</div>');
+      $('#ja').onclick = function () { jad.push({ nama: '', kategori: '', bidang: '', jam_masuk: '', jam_pulang: '', toleransi_menit: '', hari_kerja: '', lintas_hari: '', lokasi: '', wajib_radius: '', hari_libur: '' }); openJ = jad.length - 1; drawJad(); var c = $$('#pjad .jcard'); if (c.length) c[c.length - 1].scrollIntoView({ block: 'nearest' }); };
+      function upd(i) { var el = $('#jh' + i); if (el) el.innerHTML = jsum(jad[i]); }
+      $$('#pjad [data-jh]').forEach(function (hd) { hd.onclick = function (e) { if (e.target.closest && e.target.closest('button')) return; var i = +hd.getAttribute('data-jh'); openJ = openJ === i ? -1 : i; drawJad(); }; });
+      $$('#pjad [data-jo]').forEach(function (b) { b.onclick = function () { var i = +b.getAttribute('data-jo'); openJ = openJ === i ? -1 : i; drawJad(); }; });
+      $$('#pjad [data-k]').forEach(function (inp) {
+        inp.oninput = inp.onchange = function () {
+          var i = +inp.getAttribute('data-i'), k = inp.getAttribute('data-k');
+          jad[i][k] = inp.type === 'checkbox' ? (inp.checked ? 'YA' : '') : inp.value; upd(i);
+        };
+      });
+      $$('#pjad .jlk').forEach(function (cb) { cb.onchange = function () { var i = +cb.getAttribute('data-i'); jad[i].lokasi = $$('#pjad .jlk[data-i="' + i + '"]:checked').map(function (c) { return c.value; }).join(';'); }; });
+      $$('#pjad .jhk').forEach(function (cb) { cb.onchange = function () { var i = +cb.getAttribute('data-i'); jad[i].hari_kerja = $$('#pjad .jhk[data-i="' + i + '"]:checked').map(function (c) { return c.value; }).join(','); upd(i); }; });
+      $$('#pjad input[data-k=hari_libur]').forEach(function (inp) {
+        inp.onchange = function () {
+          var i = +inp.getAttribute('data-i'), r = parseTanggal(inp.value);
+          if (r.bad.length) { toast(badTgl(r), 'err'); return; }
+          inp.value = r.list.join(', '); jad[i].hari_libur = inp.value;
+        };
+      });
+      function simpanJad(ok) {
+        for (var i = 0; i < jad.length; i++) {
+          if (!String(jad[i].nama || '').trim()) { openJ = i; drawJad(); toast('Isi nama jadwal.', 'err'); return Promise.resolve(false); }
+          var r = parseTanggal(jad[i].hari_libur);
+          if (r.bad.length) { openJ = i; drawJad(); toast(badTgl(r), 'err'); return Promise.resolve(false); }
+          jad[i].hari_libur = r.list.join(',');
+        }
+        return busy(function () { return api('apiJadwalSimpan', jad); }).then(function () { toast(ok, 'ok'); return true; });
+      }
+      $$('#pjad [data-js]').forEach(function (b) { b.onclick = function () { simpanJad('Jadwal tersimpan.').then(function (r) { if (r) drawJad(); }).catch(onErr); }; });
+      $$('#pjad [data-jx]').forEach(function (b) {
+        b.onclick = function () {
+          var i = +b.getAttribute('data-jx'), it = jad[i];
+          ask('Hapus jadwal "' + (it.nama || 'baru') + '"? Tenaga yang memakai jadwal ini kembali ke pengaturan umum.', 'Hapus', true).then(function (ok) {
+            if (!ok) return;
+            jad.splice(i, 1); openJ = -1;
+            if (!String(it.nama || '').trim()) { drawJad(); return; }  // jadwal baru yang belum diisi: cukup dibuang dari layar
+            simpanJad('Jadwal dihapus.').then(function (r) { if (!r) { jad.splice(i, 0, it); } drawJad(); }).catch(function (e) { jad.splice(i, 0, it); drawJad(); onErr(e); });
+          });
+        };
+      });
     }
-    drawJad();
-    $('#ja').onclick = function () { jad.push({ nama: '', kategori: '', bidang: '', jam_masuk: '', jam_pulang: '', toleransi_menit: '', hari_kerja: '', lintas_hari: '', lokasi: '', wajib_radius: '', hari_libur: '' }); drawJad(); };
-    $('#js').onclick = function () { busy(function () { return api('apiJadwalSimpan', jad); }).then(function () { saved = jad.map(function (x) { return Object.assign({}, x); }); drawJsum(); toast('Jadwal tersimpan.', 'ok'); }).catch(onErr); };
 
-    $('#adm').innerHTML = '<small class="muted">SUPER: semua fitur. VERIFIKATOR: melihat data dan mengoreksi presensi. VIEWER: hanya melihat dan mengekspor. Perubahan peran berlaku pada tindakan berikutnya.</small>' + tbl(['Username', 'Nama', 'Peran', 'Status', ''], d.admins.map(function (a) {
-      return '<tr><td>' + esc(a.username) + '</td><td>' + esc(a.nama) + '</td><td>' + esc(a.peran) + '</td><td>' + esc(a.status) + '</td><td><button class="btn btn-sm" data-ea="' + esc(a.username) + '">Ubah</button></td></tr>';
-    }));
-    $$('#adm [data-ea]').forEach(function (b) { b.onclick = function () { adminForm(d.admins.filter(function (a) { return a.username === b.getAttribute('data-ea'); })[0]); }; });
+    /* ----- tab Akun & keamanan ----- */
+    var PRN = { SUPER: 'b-purple', VERIFIKATOR: 'b-info', VIEWER: '' };
+    $('#pakun').innerHTML = '<div class="scard"><div class="row mb"><h3 style="margin:0;font-size:19px">Akun admin</h3><span class="spacer"></span><button type="button" class="btn" id="aa">' + ic('plus') + ' Tambah admin</button><button type="button" class="btn btn-primary" id="ap">' + ic('key') + ' Ganti password saya</button></div>' +
+      '<p class="sub">SUPER: semua fitur. VERIFIKATOR: melihat data dan mengoreksi presensi. VIEWER: hanya melihat dan mengekspor. Perubahan peran berlaku pada tindakan berikutnya.</p>' +
+      tbl(['Username', 'Nama', 'Peran', 'Status', 'Aksi'], d.admins.map(function (a) {
+        return '<tr><td><b>' + esc(a.username) + '</b></td><td>' + esc(a.nama) + '</td><td><span class="badge ' + (PRN[a.peran] || '') + '">' + esc(a.peran) + '</span></td><td><span class="badge ' + (a.status === 'Aktif' ? 'b-ok' : '') + '">' + esc(a.status) + '</span></td>' +
+          '<td><button type="button" class="btn btn-sm" data-ea="' + esc(a.username) + '">' + ic('edit') + ' Ubah</button></td></tr>';
+      }), 'Belum ada akun admin.') + '</div>' +
+      '<div class="scard"><h3>Keamanan</h3><h4 class="sh4">Kebijakan PIN tenaga</h4><p style="margin:0">PIN awal dibuat acak dan berbeda untuk setiap tenaga (saat tambah, impor, atau reset), ditampilkan satu kali kepada admin, dan wajib diganti saat login pertama.</p></div>';
+    $$('#pakun [data-ea]').forEach(function (b) { b.onclick = function () { adminForm(d.admins.filter(function (a) { return a.username === b.getAttribute('data-ea'); })[0]); }; });
     $('#aa').onclick = function () { adminForm(null); };
     $('#ap').onclick = pwForm;
+
+    setTab(SETTAB);
   }).catch(onErr);
 }
 
