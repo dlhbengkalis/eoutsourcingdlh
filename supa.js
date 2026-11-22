@@ -171,7 +171,7 @@
     var args = a.slice(1);                       // buang argumen pertama (token lama)
     if (fn === 'apiFoto') return fotoSrc(args[0]);
     if (fn === 'apiTenagaSimpan' || fn === 'apiTenagaResetPin' || fn === 'apiTenagaHapus' || fn === 'apiAdminSimpan') return akun(fn, args);
-    if (fn === 'apiPresensi' || fn === 'apiLaporanSimpan') {
+    if (fn === 'apiPresensi' || fn === 'apiLaporanSimpan' || fn === 'apiLaporanAdminSimpan') {
       return prepPayload(args[0]).then(function (p) { return rpc(fn, [p]); });
     }
     return rpc(fn, args);

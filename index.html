@@ -2166,13 +2166,11 @@ function aLaporan() {
         '<td style="white-space:nowrap">' + (r.volume ? esc(r.volume) + ' ' + esc(r.satuan) : '') + '</td>' +
         '<td style="white-space:nowrap"><span class="rowact">' +
         '<button class="btn btn-sm" data-lv="' + i + '">Lihat</button>' +
-        (canVerif() ? '<button class="btn btn-sm btn-ico" data-le="' + i + '" title="Ubah" aria-label="Ubah laporan">' + ic('edit') + '</button>' : '') +
         (isSuper() ? '<button class="btn btn-sm btn-ico btn-dl" data-lx="' + i + '" title="Hapus" aria-label="Hapus laporan">' + ic('trash') + '</button>' : '') + '</span></td></tr>';
     }), 'Tidak ada laporan pada filter ini.');
     $('#res').innerHTML = h;
     function one(b, attr) { return groups[+b.getAttribute(attr)]; }
     $$('#res [data-lv]').forEach(function (b) { b.onclick = function () { var r = one(b, 'data-lv'); lapPerson({ no_id: r.no_id, nama: r.nama, kategori: r.kategori, bidang: r.bidang, tt: r.tt, items: [r] }, load, true); }; });
-    $$('#res [data-le]').forEach(function (b) { b.onclick = function () { lapUbah(one(b, 'data-le'), load); }; });
     $$('#res [data-lx]').forEach(function (b) {
       b.onclick = function () {
         var r = one(b, 'data-lx');
@@ -2201,7 +2199,7 @@ function lapPerson(g, reload, tunggal) {
         (r.lat ? ' · <a target="_blank" rel="noopener" href="' + mapLink(r.lat, r.lng) + '">📍 lokasi</a>' : '') + (r.diubah ? ' · diubah ' + esc(r.diubah) : '') + '</small>' +
         (r.flag ? '<div class="warnbox" style="margin:6px 0">⚠️ ' + esc(r.flag) + '</div>' : '') +
         '<p style="white-space:pre-wrap;margin:6px 0">' + esc(r.uraian) + '</p>' + (r.volume ? '<p style="margin:0 0 6px"><b>Volume:</b> ' + esc(r.volume) + ' ' + esc(r.satuan) + '</p>' : '') + fotoGrid(r.foto, 'Dokumentasi') +
-        (canVerif() ? '<div class="row mt"><span class="spacer"></span><button class="btn btn-sm" data-le="' + i + '">' + ic('edit') + ' Ubah</button>' + (isSuper() ? '<button class="btn btn-sm btn-dl" data-lx="' + i + '">' + ic('trash') + ' Hapus</button>' : '') + '</div>' : '') + '</div>';
+        (canVerif() ? '<div class="row mt"><span class="spacer"></span><button class="btn btn-sm btn-primary" data-le="' + i + '">' + ic('edit') + ' Ubah laporan</button>' + (isSuper() ? '<button class="btn btn-sm btn-dl" data-lx="' + i + '">' + ic('trash') + ' Hapus</button>' : '') + '</div>' : '') + '</div>';
     }).join('');
   var m = openModal('Detail Laporan', body, { wide: true });
   lazyImgs(m.el);
@@ -2217,19 +2215,50 @@ function lapPerson(g, reload, tunggal) {
 }
 function lapUbah(r, reload) {
   var sat = (S.cfg && S.cfg.satuan) || [];
+  var cur = String(r.foto || '').split(',').filter(String), add = [], dirty = false;
   var m = openModal('Ubah laporan',
     '<form id="lf"><p><b>' + esc(r.nama) + '</b> · ' + esc(r.no_id) + '</p>' +
     '<label>Tanggal</label><input type="date" name="tanggal" value="' + esc(r.tanggal) + '" max="' + esc(dateIso()) + '" required>' +
     '<label>Uraian pekerjaan</label><textarea name="uraian" required minlength="10" maxlength="1500" style="min-height:110px">' + esc(r.uraian) + '</textarea>' +
     '<div class="grid"><div><label>Volume</label><input name="volume" inputmode="decimal" value="' + esc(r.volume || '') + '"></div>' +
     '<div><label>Satuan</label><select name="satuan">' + optsHtml(sat, r.satuan, '—') + '</select></div></div>' +
-    '<label>Alasan perubahan (wajib, tercatat di Log)</label><input name="alasan" required minlength="5" maxlength="300" placeholder="mis. perbaikan salah ketik">' +
-    '<small class="muted">Status verifikasi laporan tidak berubah. Foto tidak dapat diubah oleh admin.</small>' +
-    '<button class="btn btn-primary btn-block mt">Simpan</button></form>');
+    '<label>Foto dokumentasi (maks. 3)</label><div id="lfo"></div>' +
+    '<input type="file" id="lfi" accept="image/*" class="hidden">' +
+    '<label>Alasan perubahan (wajib, tercatat di Log)</label><input name="alasan" required minlength="5" maxlength="300" placeholder="mis. perbaikan salah ketik / foto salah">' +
+    '<small class="muted">Status verifikasi laporan tidak berubah.</small>' +
+    '<button class="btn btn-primary btn-block mt">Simpan</button></form>', { wide: true });
+  function thumb(src, attr, i) {
+    return '<div style="position:relative;display:inline-block;margin:0 8px 8px 0"><img class="photo" ' + attr + ' style="width:110px;height:110px;object-fit:cover;border-radius:10px" alt="Foto">' +
+      '<button type="button" class="btn btn-sm btn-danger" data-rm="' + i + '" style="position:absolute;top:4px;right:4px;padding:2px 7px" aria-label="Hapus foto">✕</button></div>';
+  }
+  function drawFoto() {
+    var h = cur.map(function (id, i) { return thumb('', 'data-fid="' + esc(id) + '"', 'c' + i); }).join('') +
+      add.map(function (d, i) { return thumb(d, 'src="' + d + '"', 'n' + i); }).join('');
+    if (cur.length + add.length < 3) h += '<button type="button" class="btn" id="lfa" style="width:110px;height:110px;vertical-align:top">＋ Foto</button>';
+    if (!cur.length && !add.length) h = '<small class="muted">Belum ada foto.</small><br>' + h;
+    $('#lfo', m.el).innerHTML = h;
+    lazyImgs($('#lfo', m.el));
+    $$('#lfo [data-rm]', m.el).forEach(function (b) {
+      b.onclick = function (e) {
+        e.stopPropagation();
+        var k = b.getAttribute('data-rm'), i = +k.substr(1);
+        if (k.charAt(0) === 'c') cur.splice(i, 1); else add.splice(i, 1);
+        dirty = true; drawFoto();
+      };
+    });
+    if ($('#lfa', m.el)) $('#lfa', m.el).onclick = function () { $('#lfi', m.el).click(); };
+  }
+  $('#lfi', m.el).onchange = function () {
+    var f = this.files && this.files[0], inp = this;
+    if (!f) return;
+    readImage(f, 1280).then(function (c) { add.push(c.toDataURL('image/jpeg', 0.7)); dirty = true; inp.value = ''; drawFoto(); }).catch(onErr);
+  };
+  drawFoto();
   $('#lf', m.el).onsubmit = function (e) {
     e.preventDefault();
     var v = formVals(m.el); v.id = r.id;
-    busy(function () { return api('apiLaporanAdminSimpan', v); }).then(function () { m.close(); toast('Laporan diperbarui.', 'ok'); if (reload) reload(); }).catch(onErr);
+    if (dirty) v.fotos = cur.concat(add);
+    busy(function () { return api('apiLaporanAdminSimpan', v); }, add.length ? 'Mengunggah foto…' : undefined).then(function () { m.close(); toast('Laporan diperbarui.', 'ok'); if (reload) reload(); }).catch(onErr);
   };
 }
 
