@@ -664,6 +664,20 @@ html.vwfix #app.tenaga{max-width:var(--vw)}
 .rowact{display:inline-flex;gap:6px}
 .scard table th{text-transform:none;letter-spacing:0}
 @media(max-width:860px){.sgrid,.sgrid2{grid-template-columns:1fr}.s3{grid-template-columns:1fr 1fr}}
+
+/* ---- kamera langsung dengan bingkai wajah ---- */
+.lc{position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;align-items:center;color:#fff}
+.lc-top{width:100%;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;font-size:15px}
+.lc-x{background:rgba(255,255,255,.18);border:0;color:#fff;width:36px;height:36px;border-radius:50%;font-size:16px;cursor:pointer}
+.lc-main{flex:1;min-height:0;width:100%;display:flex;align-items:center;justify-content:center}
+.lc-stage{position:relative;overflow:hidden;border-radius:12px;background:#111}
+.lc-stage video{display:block;width:100%;height:100%;transform:scaleX(-1);object-fit:cover}
+.lc-stage svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.lc-msg{width:100%;text-align:center;padding:10px 16px;font-weight:600;font-size:15px;min-height:44px;color:#fff}
+.lc-msg.ok{color:#5df08c}.lc-msg.bad{color:#ffd166}
+.lc-bar{padding:6px 0 22px;display:flex;justify-content:center}
+.lc-shot{width:68px;height:68px;border-radius:50%;border:4px solid #fff;background:#fff;box-shadow:0 0 0 3px rgba(0,0,0,.4) inset;cursor:pointer}
+.lc-shot:disabled{opacity:.3;cursor:not-allowed}
 </style>
 
   <title>e-Outsourcing DLH Kab. Bengkalis</title>
@@ -1227,13 +1241,88 @@ function izinForm(aksi) {
   };
 }
 
+/* ---------- kamera langsung: bingkai oval + (bila browser mendukung) deteksi wajah ---------- */
+function liveCam(title) {
+  return new Promise(function (res, rej) {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { rej(new Error('nocam')); return; }
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 960 } }, audio: false }).then(function (stream) {
+      var bg = document.createElement('div'); bg.className = 'lc';
+      bg.innerHTML = '<div class="lc-top"><b>' + esc(title || 'Foto wajah') + '</b><button type="button" class="lc-x" aria-label="Tutup">✕</button></div>' +
+        '<div class="lc-main"><div class="lc-stage"><video autoplay playsinline muted></video><svg></svg></div></div>' +
+        '<div class="lc-msg">Menyalakan kamera…</div><div class="lc-bar"><button type="button" class="lc-shot" disabled aria-label="Ambil foto"></button></div>';
+      document.body.appendChild(bg);
+      var vid = $('video', bg), stage = $('.lc-stage', bg), svg = $('svg', bg), msg = $('.lc-msg', bg), shot = $('.lc-shot', bg);
+      var done = false, timer = 0, det = null, ov = { cx: 0.5, cy: 0.46, rw: 0.3, rh: 0.4 };   // oval dalam pecahan lebar/tinggi video
+      vid.srcObject = stream;
+      try { if (window.FaceDetector) det = new window.FaceDetector({ fastMode: true, maxDetectedFaces: 2 }); } catch (e) { det = null; }
+      function stop(v) {
+        if (done) return; done = true; clearTimeout(timer);
+        try { stream.getTracks().forEach(function (t) { t.stop(); }); } catch (e) { /* abaikan */ }
+        bg.remove(); res(v || null);
+      }
+      function say(t, c) { msg.textContent = t; msg.className = 'lc-msg' + (c ? ' ' + c : ''); }
+      function layout() {
+        var vw = vid.videoWidth, vh = vid.videoHeight; if (!vw) return;
+        var W = bg.clientWidth, H = bg.clientHeight - 170, k = Math.min(W / vw, H / vh, 1.5);
+        var w = Math.round(vw * k), h = Math.round(vh * k);
+        stage.style.width = w + 'px'; stage.style.height = h + 'px';
+        var ry = 0.4 * h, rx = Math.min(0.34 * w, ry * 0.78);
+        ov.rw = rx / w; ov.rh = ry / h;
+        var cx = w * ov.cx, cy = h * ov.cy;
+        svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+        svg.innerHTML = '<defs><mask id="lcm"><rect width="' + w + '" height="' + h + '" fill="#fff"/><ellipse cx="' + cx + '" cy="' + cy + '" rx="' + rx + '" ry="' + ry + '" fill="#000"/></mask></defs>' +
+          '<rect width="' + w + '" height="' + h + '" fill="rgba(0,0,0,.55)" mask="url(#lcm)"/>' +
+          '<ellipse id="lce" cx="' + cx + '" cy="' + cy + '" rx="' + rx + '" ry="' + ry + '" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="' + (det ? '0' : '10 7') + '"/>';
+      }
+      function paint(ok) { var e = $('#lce', bg); if (e) e.setAttribute('stroke', ok === true ? '#5df08c' : ok === false ? '#ffd166' : '#fff'); }
+      function check() {
+        if (done) return;
+        if (!det) return;
+        det.detect(vid).then(function (faces) {
+          if (done) return;
+          var ok = false;
+          if (!faces.length) say('Wajah belum terdeteksi. Hadapkan wajah ke kamera.', 'bad');
+          else if (faces.length > 1) say('Hanya satu wajah yang boleh ada di bingkai.', 'bad');
+          else {
+            var b = faces[0].boundingBox, vw = vid.videoWidth, vh = vid.videoHeight;
+            var fx = (b.x + b.width / 2) / vw, fy = (b.y + b.height / 2) / vh, fw = b.width / vw;
+            var ow = ov.rw * 2;
+            if (Math.abs(fx - ov.cx) > 0.13 || Math.abs(fy - ov.cy) > 0.13) say('Geser wajah ke tengah bingkai.', 'bad');
+            else if (fw < ow * 0.5) say('Dekatkan wajah ke kamera.', 'bad');
+            else if (fw > ow * 1.05) say('Jauhkan sedikit dari kamera.', 'bad');
+            else { ok = true; say('Pas. Tekan tombol bulat untuk mengambil foto.', 'ok'); }
+          }
+          shot.disabled = !ok; paint(ok);
+          timer = setTimeout(check, 300);
+        }, function () { det = null; layout(); shot.disabled = false; paint(); say('Posisikan wajah di dalam bingkai, lalu tekan tombol bulat.'); });
+      }
+      vid.onloadedmetadata = function () {
+        layout();
+        vid.play().catch(function () {});
+        if (det) { say('Hadapkan wajah ke kamera…'); check(); }
+        else { say('Posisikan wajah di dalam bingkai, lalu tekan tombol bulat.'); shot.disabled = false; }
+      };
+      window.addEventListener('resize', layout);
+      shot.onclick = function () {
+        var vw = vid.videoWidth, vh = vid.videoHeight; if (!vw) return;
+        var k = Math.min(1, 720 / Math.max(vw, vh)), c = document.createElement('canvas');
+        c.width = Math.round(vw * k); c.height = Math.round(vh * k);
+        c.getContext('2d').drawImage(vid, 0, 0, c.width, c.height);
+        window.removeEventListener('resize', layout);
+        stop(c);
+      };
+      $('.lc-x', bg).onclick = function () { window.removeEventListener('resize', layout); stop(null); };
+    }, function (e) { rej(e && e.name === 'NotAllowedError' ? new Error('izin') : new Error('nocam')); });
+  });
+}
+
 function absenForm(aksi) {
   var maks = Number(S.cfg.maks_akurasi_m) || 100;
   var st = { canvas: null, ts: 0, gps: null, last: null };
   var gps;
   var m = openModal(aksi === 'MASUK' ? 'Absen Masuk' : 'Absen Pulang',
     '<div class="gps wait" id="gbox">📍 Mencari lokasi…</div>' +
-    '<div class="slot" id="slot" style="aspect-ratio:3/4;max-height:52vh">' + nv('cam') + '<b>Ketuk untuk mengambil foto</b><small>Swafoto di lokasi kerja</small></div>' +
+    '<div class="slot" id="slot" style="aspect-ratio:3/4;max-height:52vh">' + nv('cam') + '<b>Ketuk untuk membuka kamera</b><small>Swafoto: pasang wajah di dalam bingkai</small></div>' +
     '<input type="file" id="fi" accept="image/*" capture="user" class="hidden">' +
     '<button class="btn btn-primary btn-lg btn-block mt" id="send" disabled>Kirim presensi</button>' +
     '<p class="muted" style="font-size:12.5px;margin-bottom:0">Waktu dicatat otomatis oleh server. Foto diberi cap waktu dan koordinat.</p>',
@@ -1251,7 +1340,19 @@ function absenForm(aksi) {
     gbox.innerHTML = (ok ? '✅ ' : '⏳ ') + 'Lokasi: ' + g.lat.toFixed(5) + ', ' + g.lng.toFixed(5) + ' · akurasi ±' + Math.round(g.accuracy) + ' m' + (ok ? '' : ' (menunggu ≤ ' + maks + ' m)');
     gate();
   }, function (msg) { gbox.className = 'gps bad'; gbox.textContent = '⚠️ ' + msg; });
-  $('#slot', m.el).onclick = function () { $('#fi', m.el).click(); };
+  function pakai(c, ts) {
+    st.canvas = c; st.ts = ts;
+    $('#slot', m.el).innerHTML = '<img src="' + c.toDataURL('image/jpeg', 0.6) + '">';
+    gate();
+  }
+  $('#slot', m.el).onclick = function () {
+    liveCam(aksi === 'MASUK' ? 'Foto absen masuk' : 'Foto absen pulang').then(function (c) {
+      if (c) pakai(c, Date.now());
+    }, function (e) {
+      toast(e && e.message === 'izin' ? 'Izin kamera ditolak. Kamera bawaan perangkat dipakai sebagai gantinya.' : 'Kamera langsung tidak tersedia. Kamera bawaan perangkat dipakai.', 'err');
+      $('#fi', m.el).click();
+    });
+  };
   $('#fi', m.el).onchange = function () {
     var f = this.files && this.files[0];
     if (!f) return;
