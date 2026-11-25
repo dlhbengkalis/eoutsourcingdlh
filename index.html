@@ -1242,6 +1242,31 @@ function izinForm(aksi) {
 }
 
 /* ---------- kamera langsung: bingkai oval + (bila browser mendukung) deteksi wajah ---------- */
+/* Deteksi wajah cadangan untuk browser tanpa FaceDetector: mengukur piksel warna kulit terhadap oval.
+ * Mengembalikan {ok, msg}. Bersifat heuristik (bukan pengenalan wajah), jadi pencahayaan sangat gelap/warna dinding mirip kulit dapat memengaruhi. */
+function faceSoft(px, w, h, ov) {
+  var inN = 0, inSkin = 0, outSkin = 0, sx = 0, sy = 0, i, x, y, r, g, b, Y, cb, cr, u, v, e, sk;
+  for (y = 0; y < h; y++) for (x = 0; x < w; x++) {
+    i = (y * w + x) * 4; r = px[i]; g = px[i + 1]; b = px[i + 2];
+    Y = 0.299 * r + 0.587 * g + 0.114 * b;
+    cb = 128 - 0.168736 * r - 0.331264 * g + 0.5 * b;
+    cr = 128 + 0.5 * r - 0.418688 * g - 0.081312 * b;
+    sk = Y > 45 && Y < 245 && cb > 77 && cb < 127 && cr > 133 && cr < 173 && r > g && r > b;
+    u = (x + 0.5) / w; v = (y + 0.5) / h;
+    e = Math.pow((u - ov.cx) / ov.rw, 2) + Math.pow((v - ov.cy) / ov.rh, 2);
+    if (e <= 1) { inN++; if (sk) { inSkin++; sx += u; sy += v; } }
+    else if (sk) outSkin++;
+  }
+  var frac = inN ? inSkin / inN : 0, tot = inSkin + outSkin, share = tot ? inSkin / tot : 0;
+  if (frac < 0.12 || inSkin < 12) return { ok: false, msg: 'Wajah belum terdeteksi di dalam bingkai. Posisikan wajah di lingkaran.' };
+  if (frac > 0.94 && share > 0.9) return { ok: false, msg: 'Bingkai terisi warna kulit penuh. Pastikan yang terlihat adalah wajah.' };
+  if (share < 0.5) return { ok: false, msg: 'Geser wajah ke tengah bingkai.' };
+  var mx = sx / inSkin, my = sy / inSkin;
+  if (Math.abs(mx - ov.cx) > ov.rw * 0.35 || Math.abs(my - ov.cy) > ov.rh * 0.35) return { ok: false, msg: 'Geser wajah ke tengah bingkai.' };
+  if (frac < 0.3) return { ok: false, msg: 'Dekatkan wajah ke kamera.' };
+  return { ok: true, msg: 'Pas. Tekan tombol bulat untuk mengambil foto.' };
+}
+
 function liveCam(title) {
   return new Promise(function (res, rej) {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { rej(new Error('nocam')); return; }
@@ -1270,11 +1295,24 @@ function liveCam(title) {
         ov.rw = rx / w; ov.rh = ry / h;
         var cx = w * ov.cx, cy = h * ov.cy;
         svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
-        svg.innerHTML = '<defs><mask id="lcm"><rect width="' + w + '" height="' + h + '" fill="#fff"/><ellipse cx="' + cx + '" cy="' + cy + '" rx="' + rx + '" ry="' + ry + '" fill="#000"/></mask></defs>' +
-          '<rect width="' + w + '" height="' + h + '" fill="rgba(0,0,0,.55)" mask="url(#lcm)"/>' +
-          '<ellipse id="lce" cx="' + cx + '" cy="' + cy + '" rx="' + rx + '" ry="' + ry + '" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="' + (det ? '0' : '10 7') + '"/>';
+        svg.innerHTML = '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + rx + '" ry="' + ry + '" fill="none" stroke="rgba(0,0,0,.35)" stroke-width="6"/>' +
+          '<ellipse id="lce" cx="' + cx + '" cy="' + cy + '" rx="' + rx + '" ry="' + ry + '" fill="none" stroke="#fff" stroke-width="3"/>';
       }
       function paint(ok) { var e = $('#lce', bg); if (e) e.setAttribute('stroke', ok === true ? '#5df08c' : ok === false ? '#ffd166' : '#fff'); }
+      var okNow = false, sc = null;
+      function softCheck() {
+        if (done) return;
+        try {
+          var vw = vid.videoWidth, vh = vid.videoHeight;
+          if (vw) {
+            if (!sc) { sc = document.createElement('canvas'); sc.width = 80; sc.height = Math.max(8, Math.round(80 * vh / vw)); }
+            var cx2 = sc.getContext('2d'); cx2.drawImage(vid, 0, 0, sc.width, sc.height);
+            var r = faceSoft(cx2.getImageData(0, 0, sc.width, sc.height).data, sc.width, sc.height, ov);
+            okNow = r.ok; say(r.msg, r.ok ? 'ok' : 'bad'); shot.disabled = !r.ok; paint(r.ok);
+          }
+        } catch (e) { okNow = true; shot.disabled = false; paint(); say('Posisikan wajah di dalam bingkai, lalu tekan tombol bulat.'); return; }
+        timer = setTimeout(softCheck, 300);
+      }
       function check() {
         if (done) return;
         if (!det) return;
@@ -1292,19 +1330,19 @@ function liveCam(title) {
             else if (fw > ow * 1.05) say('Jauhkan sedikit dari kamera.', 'bad');
             else { ok = true; say('Pas. Tekan tombol bulat untuk mengambil foto.', 'ok'); }
           }
-          shot.disabled = !ok; paint(ok);
+          okNow = ok; shot.disabled = !ok; paint(ok);
           timer = setTimeout(check, 300);
-        }, function () { det = null; layout(); shot.disabled = false; paint(); say('Posisikan wajah di dalam bingkai, lalu tekan tombol bulat.'); });
+        }, function () { det = null; layout(); shot.disabled = true; softCheck(); });
       }
       vid.onloadedmetadata = function () {
         layout();
         vid.play().catch(function () {});
-        if (det) { say('Hadapkan wajah ke kamera…'); check(); }
-        else { say('Posisikan wajah di dalam bingkai, lalu tekan tombol bulat.'); shot.disabled = false; }
+        say('Hadapkan wajah ke kamera…');
+        if (det) check(); else softCheck();
       };
       window.addEventListener('resize', layout);
       shot.onclick = function () {
-        var vw = vid.videoWidth, vh = vid.videoHeight; if (!vw) return;
+        var vw = vid.videoWidth, vh = vid.videoHeight; if (!vw || !okNow) return;   // tolak jika wajah tidak di lingkaran
         var k = Math.min(1, 720 / Math.max(vw, vh)), c = document.createElement('canvas');
         c.width = Math.round(vw * k); c.height = Math.round(vh * k);
         c.getContext('2d').drawImage(vid, 0, 0, c.width, c.height);
